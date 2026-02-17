@@ -15,12 +15,12 @@ yarn-error.log*
 pnpm-debug.log*
 
 # Env files (never commit secrets)
-# .env
-# .env.*
-# avatar-widget/.env
+.env
+.env.*
+avatar-widget/.env
 
 # Optional runtime env injection (if used)
-# avatar-widget/env.js
+avatar-widget/env.js
 
 # OS/IDE files
 .DS_Store
