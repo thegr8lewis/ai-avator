@@ -135,7 +135,22 @@ class ChatManager {
   }
 
   async getGeminiResponse(userMessage, weatherContext = '') {
-    return await geminiGetResponse(userMessage, weatherContext);
+    const response = await geminiGetResponse(userMessage, weatherContext);
+    return this.sanitizeResponse(response);
+  }
+
+  sanitizeResponse(text) {
+    if (!text) return text;
+    // Remove markdown formatting
+    return text
+      .replace(/\*\*/g, '')  // Remove bold **
+      .replace(/\*/g, '')    // Remove italic *
+      .replace(/\_\_/g, '')  // Remove bold __
+      .replace(/\_/g, '')    // Remove italic _
+      .replace(/\#\#\#/g, '') // Remove h3 ###
+      .replace(/\#\#/g, '')  // Remove h2 ##
+      .replace(/\#/g, '')    // Remove h1 #
+      .trim();
   }
 
   addMessage(sender, text) {

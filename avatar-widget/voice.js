@@ -2,12 +2,32 @@ import languageManager from './language.js';
 
 // ElevenLabs Configuration - ONLY voice provider used (no browser speech synthesis)
 const ELEVENLABS_API_KEY = window.ELEVENLABS_API_KEY || '';
-const VOICE_ID = '4D2aKdYVV51kyAH4OGCY'; // Your cloned voice ID
+const VOICE_ID = window.ELEVENLABS_VOICE_ID || 'Cs1wOITy9rzt9SkpOKnu'; // Your cloned voice ID
 const ELEVENLABS_API_URL = `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}/stream`;
+
+// Log voice configuration
+console.log('🎤 ElevenLabs Voice Configuration:', {
+  voiceId: VOICE_ID,
+  apiKeyPresent: !!ELEVENLABS_API_KEY
+});
 
 let hooks = { onStart: null, onBoundary: null, onEnd: null };
 let currentAudio = null;
 let boundaryInterval = null;
+
+// Sanitize text by removing markdown formatting
+function sanitizeText(text) {
+  if (!text) return text;
+  return text
+    .replace(/\*\*/g, '')  // Remove bold **
+    .replace(/\*/g, '')    // Remove italic *
+    .replace(/\_\_/g, '')  // Remove bold __
+    .replace(/\_/g, '')    // Remove italic _
+    .replace(/\#\#\#/g, '') // Remove h3 ###
+    .replace(/\#\#/g, '')  // Remove h2 ##
+    .replace(/\#/g, '')    // Remove h1 #
+    .trim();
+}
 
 export function setSpeechHooks(newHooks) {
   hooks = { ...hooks, ...newHooks };
@@ -42,10 +62,12 @@ async function generateSpeech(text) {
     },
     body: JSON.stringify({
       text: text,
-      model_id: 'eleven_monolingual_v1',
+      model_id: 'eleven_multilingual_v2',
       voice_settings: {
-        stability: 0.5,
-        similarity_boost: 0.75
+        stability: 0.75,
+        similarity_boost: 0.85,
+        style: 0.0,
+        use_speaker_boost: true
       }
     })
   });
@@ -65,6 +87,7 @@ function playAudio(audioUrl, text, onEndCallback = null) {
   stopCurrentAudio();
 
   currentAudio = new Audio(audioUrl);
+  currentAudio.volume = 1.0; // Set volume to maximum
   
   // Trigger onStart when audio actually starts playing
   currentAudio.onplay = () => {
@@ -106,9 +129,10 @@ export async function speak(text) {
   
   try {
     stopCurrentAudio();
+    const cleanText = sanitizeText(text);
     console.log('🎙️ Generating speech with ElevenLabs...');
-    const audioUrl = await generateSpeech(text);
-    playAudio(audioUrl, text);
+    const audioUrl = await generateSpeech(cleanText);
+    playAudio(audioUrl, cleanText);
   } catch (error) {
     console.error('❌ Speech generation failed:', error);
     // Fallback notification
@@ -121,9 +145,10 @@ export async function speakThen(text, onEnd) {
   
   try {
     stopCurrentAudio();
+    const cleanText = sanitizeText(text);
     console.log('🎙️ Generating speech with ElevenLabs...');
-    const audioUrl = await generateSpeech(text);
-    playAudio(audioUrl, text, onEnd);
+    const audioUrl = await generateSpeech(cleanText);
+    playAudio(audioUrl, cleanText, onEnd);
   } catch (error) {
     console.error('❌ Speech generation failed:', error);
     // Call onEnd even on error to prevent hanging

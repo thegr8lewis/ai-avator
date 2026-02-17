@@ -157,6 +157,20 @@ animate();
 const speechBubble = document.getElementById('speech-bubble');
 let speechTimeout = null;
 
+function sanitizeText(text) {
+  if (!text) return text;
+  // Remove markdown formatting
+  return text
+    .replace(/\*\*/g, '')  // Remove bold **
+    .replace(/\*/g, '')    // Remove italic *
+    .replace(/\_\_/g, '')  // Remove bold __
+    .replace(/\_/g, '')    // Remove italic _
+    .replace(/\#\#\#/g, '') // Remove h3 ###
+    .replace(/\#\#/g, '')  // Remove h2 ##
+    .replace(/\#/g, '')    // Remove h1 #
+    .trim();
+}
+
 function showSpeechBubble(text) {
   if (!speechBubble) return;
   
@@ -166,8 +180,8 @@ function showSpeechBubble(text) {
     speechTimeout = null;
   }
   
-  // Update text and show bubble
-  speechBubble.textContent = text;
+  // Sanitize and update text, then show bubble
+  speechBubble.textContent = sanitizeText(text);
   speechBubble.classList.add('active');
 }
 

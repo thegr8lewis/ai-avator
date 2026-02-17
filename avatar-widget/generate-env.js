@@ -1,4 +1,3 @@
-// Auto-generate env.js from .env file
 // Usage: node generate-env.js
 
 const fs = require('fs');
