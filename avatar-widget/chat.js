@@ -83,11 +83,18 @@ class ChatManager {
     this.showTypingIndicator();
 
     try {
+      // Extract city from message
+      const city = this.extractCity(message);
+      console.log('🏙️ City detected in chat:', city);
+      
       // Detect weather intent and gather context
       const isWeather = this.isWeatherQuery(message);
       let weatherContext = '';
       if (isWeather && typeof window.getWeatherSummary === 'function') {
-        try { weatherContext = await window.getWeatherSummary(); } catch {}
+        try { 
+          // Pass city to weather summary if detected
+          weatherContext = await window.getWeatherSummary(city); 
+        } catch {}
       }
 
       // Get AI response
@@ -110,7 +117,8 @@ class ChatManager {
       // Fallback: if user asked for weather, speak the summary directly
       if (this.isWeatherQuery(message) && typeof window.getWeatherSummary === 'function') {
         try {
-          const summary = await window.getWeatherSummary();
+          const city = this.extractCity(message);
+          const summary = await window.getWeatherSummary(city);
           this.addMessage('avatar', summary);
           if (window.speak) window.speak(summary);
           return;
@@ -132,6 +140,33 @@ class ChatManager {
       t.includes('sunny') || t.includes('sonnig') ||
       t.includes('cloud') || t.includes('wolke') || t.includes('bewölkt')
     );
+  }
+
+  extractCity(userMessage) {
+    if (!userMessage) return null;
+    const msg = userMessage.toLowerCase();
+    const cities = [
+      'frankfurt', 'berlin', 'münchen', 'munich', 'hamburg', 'köln', 'cologne',
+      'stuttgart', 'düsseldorf', 'dortmund', 'essen', 'leipzig', 'dresden',
+      'hannover', 'nürnberg', 'nuremberg', 'duisburg', 'bochum', 'wuppertal',
+      'bielefeld', 'bonn', 'münster', 'karlsruhe', 'mannheim', 'augsburg',
+      'wiesbaden', 'gelsenkirchen', 'mönchengladbach', 'braunschweig', 'chemnitz',
+      'kiel', 'aachen', 'halle', 'magdeburg', 'freiburg', 'krefeld', 'lübeck',
+      'oberhausen', 'erfurt', 'mainz', 'rostock', 'kassel', 'hagen', 'saarbrücken',
+      'potsdam', 'ludwigshafen', 'oldenburg', 'leverkusen', 'osnabrück', 'solingen'
+    ];
+    
+    for (const city of cities) {
+      if (msg.includes(city)) {
+        // Normalize city names
+        if (city === 'munich') return 'München';
+        if (city === 'cologne') return 'Köln';
+        if (city === 'nuremberg') return 'Nürnberg';
+        return city.charAt(0).toUpperCase() + city.slice(1);
+      }
+    }
+    
+    return null;
   }
 
   async getGeminiResponse(userMessage, weatherContext = '') {

@@ -1,0 +1,1929 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Waschanlagenfinder | Circle K Deutschland</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"
+      }
+    }
+  </script>
+  <script src="./env.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f8f9fa;
+      overflow-x: hidden;
+      color: #1a1a1a;
+    }
+
+    /* Ensure tab content has proper background */
+    .tab-content {
+      background: #f8f9fa;
+      min-height: 100vh;
+    }
+
+    /* Circle K Branding Colors */
+    :root {
+      --circle-k-red: #E30613;
+      --circle-k-red-dark: #c70512;
+      --circle-k-red-light: #ff1a1a;
+      --circle-k-white: #FFFFFF;
+      --circle-k-dark: #1a1a1a;
+      --circle-k-gray: #666666;
+      --circle-k-light-gray: #f5f5f5;
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.12);
+      --shadow-lg: 0 8px 32px rgba(0,0,0,0.16);
+      --shadow-xl: 0 20px 60px rgba(0,0,0,0.2);
+    }
+
+    /* Header with Circle K Branding */
+    .circle-k-header {
+      background: linear-gradient(135deg, var(--circle-k-red) 0%, var(--circle-k-red-dark) 100%);
+      color: var(--circle-k-white);
+      padding: 24px 40px;
+      box-shadow: var(--shadow-lg);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .header-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .circle-k-logo {
+      font-size: 36px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      letter-spacing: -0.5px;
+    }
+
+    .logo-circle {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 4px solid var(--circle-k-white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 900;
+      background: rgba(255,255,255,0.1);
+    }
+
+    .page-title {
+      font-size: 18px;
+      margin-top: 8px;
+      font-weight: 400;
+      opacity: 0.95;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .header-btn {
+      padding: 10px 20px;
+      background: rgba(255,255,255,0.15);
+      border: 2px solid rgba(255,255,255,0.3);
+      color: var(--circle-k-white);
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .header-btn:hover {
+      background: rgba(255,255,255,0.25);
+      border-color: rgba(255,255,255,0.5);
+      transform: translateY(-2px);
+    }
+
+    /* Tab Navigation */
+    .tab-container {
+      background: var(--circle-k-white);
+      border-bottom: 1px solid #e0e0e0;
+      box-shadow: var(--shadow-sm);
+      position: sticky;
+      top: 96px;
+      z-index: 999;
+    }
+
+    .tab-nav {
+      display: flex;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 30px 40px 10px 40px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .tab-nav::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tab-button {
+      padding: 20px 32px;
+      background: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--circle-k-gray);
+      transition: all 0.3s ease;
+      position: relative;
+      white-space: nowrap;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .tab-button:hover {
+      color: var(--circle-k-red);
+      background: rgba(227, 6, 19, 0.03);
+    }
+
+    .tab-button.active {
+      color: var(--circle-k-red);
+      border-bottom-color: var(--circle-k-red);
+    }
+
+    /* Tab Content */
+    .tab-content {
+      display: none;
+      padding: 60px 40px;
+      max-width: 1400px;
+      margin: 0 auto;
+      min-height: calc(100vh - 200px);
+    }
+
+    /* Full width for Finder tab (Hero) */
+    #tab-finder.tab-content {
+      padding: 0;
+      max-width: none;
+      width: 100%;
+    }
+
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Weather Hero Section - Modern Design */
+    .weather-hero-section {
+      text-align: center;
+      padding: 80px 60px;
+      background: linear-gradient(135deg, hsl(0, 0%, 100%) 0%, hsl(0, 0%, 98%) 100%);
+      border-radius: 24px;
+      margin-bottom: 60px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+      border: 1px solid hsl(0, 0%, 92%);
+    }
+
+    .weather-hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1.25rem;
+      background: hsl(0, 0%, 97%);
+      border: 1px solid hsl(0, 0%, 88%);
+      border-radius: 2rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: hsl(0, 78%, 45%);
+      margin-bottom: 2rem;
+    }
+
+    .weather-hero-badge svg {
+      color: hsl(0, 78%, 45%);
+    }
+
+    .weather-hero-section h2 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: hsl(0, 0%, 10%);
+      margin-bottom: 1.5rem;
+      letter-spacing: -0.5px;
+      line-height: 1.2;
+    }
+
+    .weather-hero-section p {
+      font-size: 1.125rem;
+      color: hsl(0, 0%, 45%);
+      max-width: 700px;
+      margin: 0 auto 2.5rem;
+      line-height: 1.7;
+      font-weight: 400;
+    }
+
+    .btn-modern {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1rem 2rem;
+      background: hsl(0, 78%, 45%);
+      color: white;
+      border: none;
+      border-radius: 0.75rem;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(227, 6, 19, 0.3);
+    }
+
+    .btn-modern:hover {
+      background: hsl(0, 78%, 40%);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(227, 6, 19, 0.4);
+    }
+
+    .btn-modern svg {
+      transition: transform 0.3s ease;
+    }
+
+    .btn-modern:hover svg {
+      transform: translateX(4px);
+    }
+
+    /* Modern Hero Section for all tabs */
+    .content-hero-modern {
+      text-align: center;
+      padding: 60px 40px;
+      background: linear-gradient(135deg, hsl(0, 0%, 100%) 0%, hsl(0, 0%, 98%) 100%);
+      border-radius: 24px;
+      margin-bottom: 60px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+      border: 1px solid hsl(0, 0%, 92%);
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1.25rem;
+      background: hsl(0, 0%, 97%);
+      border: 1px solid hsl(0, 0%, 88%);
+      border-radius: 2rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: hsl(0, 78%, 45%);
+      margin-bottom: 2rem;
+    }
+
+    .hero-badge svg {
+      color: hsl(0, 78%, 45%);
+    }
+
+    .content-hero-modern h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: hsl(0, 0%, 10%);
+      margin-bottom: 1.5rem;
+      letter-spacing: -0.5px;
+      line-height: 1.2;
+    }
+
+    .content-hero-modern p {
+      font-size: 1.125rem;
+      color: hsl(0, 0%, 45%);
+      max-width: 700px;
+      margin: 0 auto;
+      line-height: 1.7;
+      font-weight: 400;
+    }
+
+    .content-hero h1 {
+      font-size: 42px;
+      font-weight: 800;
+      color: var(--circle-k-dark);
+      margin-bottom: 20px;
+      line-height: 1.2;
+    }
+
+    .content-hero p {
+      font-size: 20px;
+      color: var(--circle-k-gray);
+      max-width: 800px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 32px;
+      margin-bottom: 60px;
+    }
+
+    .card {
+      background: var(--circle-k-white);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+      transition: all 0.3s ease;
+      border: none;
+    }
+
+    .card:hover {
+      transform: translateY(-8px);
+      box-shadow: var(--shadow-xl);
+    }
+
+    .card-image {
+      width: 100%;
+      height: 240px;
+      object-fit: cover;
+      background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+    }
+
+    .card-content {
+      padding: 28px;
+    }
+
+    .card-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--circle-k-dark);
+      margin-bottom: 12px;
+    }
+
+    .card-description {
+      font-size: 15px;
+      color: var(--circle-k-gray);
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .card-price {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--circle-k-red);
+      margin-bottom: 16px;
+    }
+
+    .card-features {
+      list-style: none;
+      margin-bottom: 20px;
+    }
+
+    .card-features li {
+      padding: 8px 0;
+      color: var(--circle-k-gray);
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-features li::before {
+      content: '✓';
+      color: var(--circle-k-red);
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 14px 32px;
+      background: var(--circle-k-red);
+      color: var(--circle-k-white);
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      text-align: center;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .btn:hover {
+      background: var(--circle-k-red-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(227, 6, 19, 0.3);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      border: 2px solid var(--circle-k-red);
+      color: var(--circle-k-red);
+    }
+
+    .btn-secondary:hover {
+      background: var(--circle-k-red);
+      color: var(--circle-k-white);
+    }
+
+    /* Hero Landing Section - Full Image Right with Fade */
+    .hero-landing {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 100%;
+      min-height: 100vh;
+      height: 100vh;
+      padding: 0;
+      margin-bottom: 0;
+      overflow: hidden;
+      background: #ffffff;
+    }
+
+    .hero-text-content {
+      position: relative;
+      z-index: 2;
+      max-width: 650px;
+      padding: 100px 80px;
+      opacity: 0;
+      animation: fadeInLeft 1s ease forwards;
+      animation-delay: 0.2s;
+    }
+
+    .hero-text-content h1 {
+      font-size: 58px;
+      font-weight: 800;
+      color: var(--circle-k-dark);
+      margin-bottom: 28px;
+      line-height: 1.15;
+    }
+
+    .hero-text-content h1 .highlight {
+      color: var(--circle-k-red);
+      display: block;
+    }
+
+    .hero-text-content p {
+      font-size: 22px;
+      color: var(--circle-k-gray);
+      line-height: 1.7;
+      margin-bottom: 48px;
+    }
+
+    .hero-image-container {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 60%;
+      height: 100%;
+      opacity: 0;
+      animation: fadeInRight 1s ease forwards;
+      animation-delay: 0.4s;
+    }
+
+    .hero-image-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to right, rgba(255,255,255,1) 0%, rgba(255,255,255,0.8) 20%, rgba(255,255,255,0) 50%);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .hero-image-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+    }
+
+    @keyframes fadeInLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-40px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes fadeInRight {
+      from {
+        opacity: 0;
+        transform: translateX(40px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .hero-cta-group {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .hero-cta {
+      padding: 18px 40px;
+      background: var(--circle-k-white);
+      color: var(--circle-k-red);
+      border: none;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    }
+
+    .hero-cta:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+    }
+
+    .hero-cta-secondary {
+      background: transparent;
+      color: var(--circle-k-white);
+      border: 3px solid var(--circle-k-white);
+    }
+
+    .hero-cta-secondary:hover {
+      background: var(--circle-k-white);
+      color: var(--circle-k-red);
+    }
+
+    .features-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 32px;
+      margin-bottom: 60px;
+    }
+
+    .feature-box {
+      background: var(--circle-k-white);
+      padding: 40px 32px;
+      border-radius: 16px;
+      text-align: center;
+      box-shadow: var(--shadow-md);
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+
+    .feature-box:hover {
+      transform: translateY(-8px);
+      box-shadow: var(--shadow-xl);
+      border-color: var(--circle-k-red);
+    }
+
+    .feature-icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 24px;
+      background: linear-gradient(135deg, hsl(0, 78%, 45%), hsl(0, 78%, 40%));
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 16px rgba(227, 6, 19, 0.3);
+    }
+
+    .feature-icon svg {
+      color: white;
+    }
+
+    .feature-box h3 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--circle-k-dark);
+      margin-bottom: 12px;
+    }
+
+    .feature-box p {
+      font-size: 15px;
+      color: var(--circle-k-gray);
+      line-height: 1.6;
+    }
+
+    /* Avatar Container - Only visible on weather-offers tab */
+    #avatar-container {
+      position: fixed;
+      bottom: 120px;
+      left: 40px;
+      width: 220px;
+      height: 420px;
+      z-index: 9999;
+      pointer-events: auto;
+      border-radius: 20px;
+      overflow: visible;
+      background: transparent;
+      animation: avatarFloat 6s ease-in-out infinite;
+      display: none;
+    }
+
+    #avatar-container.visible {
+      display: block;
+    }
+
+    @keyframes avatarFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+
+    /* Speech Bubble */
+    #speech-bubble {
+      position: fixed;
+      bottom: 560px;
+      left: 40px;
+      max-width: 420px;
+      padding: 24px 28px;
+      background: linear-gradient(135deg, var(--circle-k-red) 0%, var(--circle-k-red-dark) 100%);
+      color: var(--circle-k-white);
+      border-radius: 20px;
+      box-shadow: var(--shadow-xl);
+      font-size: 15px;
+      line-height: 1.7;
+      opacity: 0;
+      transform: translateY(20px) scale(0.95);
+      transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 10000;
+      pointer-events: none;
+      display: none;
+    }
+
+    #speech-bubble.visible {
+      display: block;
+    }
+
+    #speech-bubble.active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    #speech-bubble::before {
+      content: '';
+      position: absolute;
+      bottom: -12px;
+      left: 50px;
+      width: 0;
+      height: 0;
+      border-left: 14px solid transparent;
+      border-right: 14px solid transparent;
+      border-top: 14px solid var(--circle-k-red-dark);
+    }
+
+    /* Recommendations Section - inline styles handled by recommendations-enhanced.js */
+
+    .recommendation-card {
+      background: var(--circle-k-white);
+      border-radius: 20px;
+      box-shadow: var(--shadow-xl);
+      overflow: hidden;
+      border: none;
+    }
+
+    .recommendation-header {
+      background: linear-gradient(135deg, var(--circle-k-red) 0%, var(--circle-k-red-dark) 100%);
+      color: var(--circle-k-white);
+      padding: 28px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .recommendation-header h2 {
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .circle-k-logo-small {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 3px solid var(--circle-k-white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 900;
+      background: rgba(255,255,255,0.15);
+    }
+
+    .recommendation-body {
+      padding: 32px;
+    }
+
+    .wash-program, .product-item {
+      padding: 24px;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, #fafafa, #ffffff);
+      border-radius: 14px;
+      border-left: 5px solid var(--circle-k-red);
+      transition: all 0.3s ease;
+    }
+
+    .wash-program:hover, .product-item:hover {
+      transform: translateX(10px);
+      box-shadow: var(--shadow-md);
+      background: linear-gradient(135deg, #ffffff, #fafafa);
+    }
+
+    .wash-program.highlight, .product-item.highlight {
+      background: linear-gradient(135deg, #fff5f5, #ffffff);
+      border-left-width: 6px;
+      box-shadow: var(--shadow-md);
+    }
+
+    .wash-program h3, .product-item h3 {
+      font-size: 19px;
+      margin-bottom: 10px;
+      color: var(--circle-k-dark);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+    }
+
+    .wash-program p, .product-item p {
+      color: var(--circle-k-gray);
+      font-size: 14px;
+      margin-bottom: 14px;
+      line-height: 1.6;
+    }
+
+    .price {
+      display: inline-block;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--circle-k-red);
+    }
+
+    .price.special {
+      font-size: 26px;
+      background: linear-gradient(135deg, var(--circle-k-red), var(--circle-k-red-light));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .badge {
+      display: inline-block;
+      margin-left: 12px;
+      padding: 6px 14px;
+      background: var(--circle-k-red);
+      color: var(--circle-k-white);
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+
+    .recommendation-footer {
+      padding: 24px 32px;
+      background: linear-gradient(135deg, #fff5f5, #ffffff);
+      border-top: 2px solid rgba(227, 6, 19, 0.1);
+      text-align: center;
+    }
+
+    .recommendation-footer p {
+      margin: 0;
+      color: var(--circle-k-red);
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    /* Enhanced Chat Interface */
+    #chat-popup {
+      position: fixed;
+      bottom: 40px;
+      right: 40px;
+      width: 420px;
+      height: 640px;
+      background: var(--circle-k-white);
+      border-radius: 24px;
+      box-shadow: var(--shadow-xl);
+      border: none;
+      display: flex;
+      flex-direction: column;
+      z-index: 10000;
+      overflow: hidden;
+      display: none;
+    }
+
+    #chat-popup.visible {
+      display: flex;
+    }
+
+    #chat-popup.hidden {
+      display: none;
+    }
+
+    .chat-header {
+      background: linear-gradient(135deg, var(--circle-k-red) 0%, var(--circle-k-red-dark) 100%);
+      color: var(--circle-k-white);
+      padding: 24px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .chat-header-info {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .chat-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, hsl(0, 78%, 45%), hsl(0, 78%, 40%));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 16px rgba(227, 6, 19, 0.3);
+    }
+
+    .chat-avatar svg {
+      color: white;
+    }
+
+    .chat-header h3 {
+      margin: 0;
+      font-size: 19px;
+      font-weight: 700;
+    }
+
+    .chat-status {
+      font-size: 13px;
+      opacity: 0.9;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: #4ade80;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    #close-chat {
+      background: rgba(255,255,255,0.15);
+      border: none;
+      color: var(--circle-k-white);
+      font-size: 28px;
+      cursor: pointer;
+      padding: 0;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+      font-weight: 300;
+    }
+
+    #close-chat:hover {
+      background: rgba(255,255,255,0.25);
+      transform: rotate(90deg);
+    }
+
+    #chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      background: #f8f9fa;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(227, 6, 19, 0.3) transparent;
+    }
+
+    #chat-messages::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    #chat-messages::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    #chat-messages::-webkit-scrollbar-thumb {
+      background: rgba(227, 6, 19, 0.3);
+      border-radius: 3px;
+    }
+
+    .message {
+      margin-bottom: 20px;
+      padding: 14px 18px;
+      border-radius: 16px;
+      max-width: 85%;
+      line-height: 1.6;
+      animation: messageSlide 0.4s ease;
+      font-size: 14px;
+    }
+
+    @keyframes messageSlide {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .user-message {
+      background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+      margin-left: auto;
+      text-align: right;
+      border-bottom-right-radius: 4px;
+      color: #1565c0;
+      font-weight: 500;
+    }
+
+    .avatar-message {
+      background: var(--circle-k-white);
+      border: 2px solid #e0e0e0;
+      border-bottom-left-radius: 4px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .typing-indicator {
+      display: flex;
+      gap: 6px;
+      padding: 16px 20px;
+      background: var(--circle-k-white);
+      border-radius: 16px;
+      border-bottom-left-radius: 4px;
+      width: fit-content;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      background: var(--circle-k-red);
+      border-radius: 50%;
+      animation: typingDot 1.4s infinite;
+    }
+
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typingDot {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+      30% { transform: translateY(-12px); opacity: 1; }
+    }
+
+    .chat-input-container {
+      padding: 24px;
+      background: var(--circle-k-white);
+      border-top: 2px solid #f0f0f0;
+      display: flex;
+      gap: 12px;
+    }
+
+    #chat-input {
+      flex: 1;
+      padding: 14px 20px;
+      border: 2px solid #e0e0e0;
+      border-radius: 24px;
+      font-size: 14px;
+      outline: none;
+      transition: all 0.3s ease;
+      font-family: 'Inter', sans-serif;
+      background: #f8f9fa;
+    }
+
+    #chat-input:focus {
+      border-color: var(--circle-k-red);
+      background: var(--circle-k-white);
+      box-shadow: 0 0 0 4px rgba(227, 6, 19, 0.1);
+    }
+
+    #send-message {
+      padding: 14px 28px;
+      background: var(--circle-k-red);
+      color: var(--circle-k-white);
+      border: none;
+      border-radius: 24px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+    }
+
+    #send-message:hover {
+      background: var(--circle-k-red-dark);
+      transform: scale(1.05);
+      box-shadow: 0 8px 20px rgba(227, 6, 19, 0.3);
+    }
+
+    #send-message:active {
+      transform: scale(0.98);
+    }
+
+    /* Control Buttons */
+    .controls {
+      position: fixed;
+      bottom: 40px;
+      left: 40px;
+      display: flex;
+      gap: 14px;
+      z-index: 10001;
+      display: none;
+    }
+
+    .controls.visible {
+      display: flex;
+    }
+
+    .control-btn {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: none;
+      background: linear-gradient(135deg, var(--circle-k-red) 0%, var(--circle-k-red-dark) 100%);
+      color: var(--circle-k-white);
+      cursor: pointer;
+      box-shadow: var(--shadow-lg);
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .control-btn svg {
+      width: 24px;
+      height: 24px;
+      fill: var(--circle-k-white);
+    }
+
+    .control-btn:hover {
+      background: linear-gradient(135deg, var(--circle-k-red-dark) 0%, var(--circle-k-red) 100%);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(227, 6, 19, 0.4);
+    }
+
+    .control-btn:active {
+      transform: translateY(-2px);
+    }
+
+    .control-btn .tooltip {
+      position: absolute;
+      bottom: 75px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--circle-k-dark);
+      color: var(--circle-k-white);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .control-btn:hover .tooltip {
+      opacity: 1;
+    }
+
+    /* Language Toggle Enhanced */
+    #lang-toggle {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    /* Footer */
+    .footer {
+      background: var(--circle-k-dark);
+      color: var(--circle-k-white);
+      padding: 60px 40px 40px;
+      margin-top: 0;
+    }
+
+    .footer-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 40px;
+      margin-bottom: 40px;
+    }
+
+    .footer-section h4 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: var(--circle-k-white);
+    }
+
+    .footer-section ul {
+      list-style: none;
+    }
+
+    .footer-section ul li {
+      margin-bottom: 12px;
+    }
+
+    .footer-section ul li a {
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      transition: color 0.3s ease;
+      font-size: 14px;
+    }
+
+    .footer-section ul li a:hover {
+      color: var(--circle-k-red-light);
+    }
+
+    .footer-bottom {
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding-top: 30px;
+      text-align: center;
+      color: rgba(255,255,255,0.6);
+      font-size: 14px;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1200px) {
+      /* Recommendations container styles handled by recommendations-enhanced.js */
+
+      #avatar-container {
+        left: 20px;
+        bottom: 100px;
+      }
+
+      #speech-bubble {
+        left: 20px;
+        max-width: 360px;
+      }
+    }
+
+    @media (max-width: 1024px) {
+      .hero-landing {
+        flex-direction: column;
+        min-height: 100vh;
+        height: auto;
+      }
+
+      .hero-image-container {
+        position: relative;
+        width: 100%;
+        height: 50vh;
+        min-height: 400px;
+        order: 2;
+      }
+
+      .hero-image-container::before {
+        background: linear-gradient(to bottom, rgba(255,255,255,1) 0%, rgba(255,255,255,0.5) 30%, rgba(255,255,255,0) 60%);
+      }
+
+      .hero-text-content {
+        order: 1;
+        max-width: 100%;
+        padding: 80px 50px;
+      }
+
+      .hero-text-content h1 {
+        font-size: 48px;
+      }
+
+      .hero-text-content p {
+        font-size: 20px;
+      }
+
+      .content-hero h1 {
+        font-size: 36px;
+      }
+
+      .content-hero p {
+        font-size: 18px;
+      }
+
+      /* Recommendations container styles handled by recommendations-enhanced.js */
+
+      #avatar-container {
+        width: 180px;
+        height: 360px;
+        bottom: 80px;
+      }
+
+      #speech-bubble {
+        max-width: 300px;
+        bottom: 460px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .hero-landing {
+        min-height: 100vh;
+      }
+
+      .hero-image-container {
+        height: 45vh;
+        min-height: 350px;
+      }
+
+      .hero-text-content {
+        padding: 60px 30px;
+      }
+
+      .hero-text-content h1 {
+        font-size: 40px;
+      }
+
+      .hero-text-content p {
+        font-size: 18px;
+      }
+
+      .hero-cta-group {
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .hero-cta {
+        width: 100%;
+      }
+
+      .circle-k-header {
+        padding: 20px 20px;
+      }
+
+      .header-content {
+        flex-direction: column;
+        gap: 16px;
+        align-items: flex-start;
+      }
+
+      .circle-k-logo {
+        font-size: 28px;
+      }
+
+      .logo-circle {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+      }
+
+      .tab-nav {
+        padding: 0 20px;
+      }
+
+      .tab-button {
+        padding: 16px 20px;
+        font-size: 14px;
+      }
+
+      .tab-content {
+        padding: 40px 20px;
+      }
+
+      .content-hero {
+        padding: 40px 30px;
+      }
+
+      .content-hero h1 {
+        font-size: 28px;
+      }
+
+      .content-hero p {
+        font-size: 16px;
+      }
+
+      .content-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+
+      #avatar-container {
+        width: 160px;
+        height: 320px;
+        left: 10px;
+        bottom: 70px;
+      }
+
+      #speech-bubble {
+        left: 10px;
+        max-width: calc(100vw - 40px);
+        bottom: 410px;
+        font-size: 14px;
+        padding: 18px 20px;
+      }
+
+      #chat-popup {
+        width: 100%;
+        height: 100vh;
+        bottom: 0;
+        right: 0;
+        border-radius: 0;
+      }
+
+      .controls {
+        left: 10px;
+        bottom: 20px;
+        gap: 10px;
+      }
+
+      .control-btn {
+        width: 52px;
+        height: 52px;
+        font-size: 22px;
+      }
+
+      .footer {
+        padding: 40px 20px 30px;
+      }
+
+      .footer-content {
+        grid-template-columns: 1fr;
+        gap: 30px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .content-hero h1 {
+        font-size: 24px;
+      }
+
+      .card-content {
+        padding: 20px;
+      }
+
+      .card-title {
+        font-size: 18px;
+      }
+
+      .card-price {
+        font-size: 26px;
+      }
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <!-- Circle K Header -->
+  <div class="circle-k-header">
+    <div class="header-content">
+      <div>
+        <div class="circle-k-logo">
+          <div class="logo-circle">K</div>
+          <span>Circle K</span>
+        </div>
+        <div class="page-title">Waschanlagenfinder Deutschland</div>
+      </div>
+      <div class="header-actions">
+        <button class="header-btn" onclick="window.location.href='#tab-finder'">Standorte</button>
+        <button class="header-btn" onclick="window.location.href='#tab-programs'">Angebote</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="tab-container">
+    <div class="tab-nav">
+      <button class="tab-button active" data-tab="finder">Waschanlage finden</button>
+      <button class="tab-button" data-tab="programs">Waschprogramme</button>
+      <button class="tab-button" data-tab="weather-offers">Angebote – passend zum Wetter</button>
+      <button class="tab-button" data-tab="services">Services & Produkte</button>
+    </div>
+  </div>
+
+  <!-- Tab Content: Finder -->
+  <div id="tab-finder" class="tab-content active">
+    <!-- Hero Landing Section - Split Layout -->
+    <div class="hero-landing">
+      <!-- Text Content (Left) -->
+      <div class="hero-text-content">
+        <h1>
+          Professionelle Autowäsche
+          <span class="highlight">an über 500 Standorten</span>
+        </h1>
+        <p>Modernste Technologie, umweltfreundliche Reinigung und erstklassiger Service – Circle K bietet Ihnen die beste Autopflege in Deutschland.</p>
+        <div class="hero-cta-group">
+          <button class="hero-cta">Standort finden</button>
+          <button class="hero-cta hero-cta-secondary">Mehr erfahren</button>
+        </div>
+      </div>
+      
+      <!-- Car Image (Right) -->
+      <div class="hero-image-container">
+        <img src="https://images.unsplash.com/photo-1601362840469-51e4d8d58785?w=1200&q=90" alt="Circle K Car Wash" onerror="this.style.background='linear-gradient(135deg, #e0e0e0, #f5f5f5)'">
+      </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="features-section">
+      <div class="feature-box">
+        <div class="feature-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+          </svg>
+        </div>
+        <h3>Schnell & Effizient</h3>
+        <p>Hochmoderne Waschanlagen mit schneller Durchlaufzeit – Ihr Auto glänzt in wenigen Minuten.</p>
+      </div>
+
+      <div class="feature-box">
+        <div class="feature-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="2" y1="12" x2="22" y2="12"/>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          </svg>
+        </div>
+        <h3>Umweltfreundlich</h3>
+        <p>Biologisch abbaubare Reinigungsmittel und Wasserrecycling für nachhaltige Autopflege.</p>
+      </div>
+
+      <div class="feature-box">
+        <div class="feature-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+        </div>
+        <h3>Premium Qualität</h3>
+        <p>Verschiedene Waschprogramme von Basis bis Deluxe – für jeden Anspruch das Richtige.</p>
+      </div>
+
+      <div class="feature-box">
+        <div class="feature-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+        </div>
+        <h3>24/7 Verfügbar</h3>
+        <p>Viele Standorte sind rund um die Uhr geöffnet – waschen Sie wann immer Sie möchten.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab Content: Programs -->
+  <div id="tab-programs" class="tab-content">
+    <div class="content-hero-modern">
+      <div class="hero-badge">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
+        <span>Waschprogramme</span>
+      </div>
+      <h1>Unsere Waschprogramme</h1>
+      <p>Von der Basis-Wäsche bis zum Premium-Paket - wählen Sie das perfekte Programm für Ihr Fahrzeug.</p>
+    </div>
+
+    <div class="content-grid">
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=800&q=80" alt="Basis Wäsche" class="card-image" onerror="this.style.background='linear-gradient(135deg, #e0e0e0, #f5f5f5)'">
+        <div class="card-content">
+          <div class="card-title">Basis Wäsche</div>
+          <div class="card-price">€7.90</div>
+          <ul class="card-features">
+            <li>Vorreinigung mit Hochdruck</li>
+            <li>Shampoo-Wäsche</li>
+            <li>Klarspülung</li>
+            <li>Schnelltrocknung</li>
+          </ul>
+          <button class="btn btn-secondary">Auswählen</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1607860108855-64acf2078ed9?w=800&q=80" alt="Premium Wäsche" class="card-image" onerror="this.style.background='linear-gradient(135deg, #e0e0e0, #f5f5f5)'">
+        <div class="card-content">
+          <div class="card-title">Premium Wäsche</div>
+          <div class="card-price">€12.90</div>
+          <ul class="card-features">
+            <li>Intensive Vorreinigung</li>
+            <li>Premium Shampoo</li>
+            <li>Heißwachs-Versiegelung</li>
+            <li>Glanztrocknung</li>
+            <li>Felgenreinigung</li>
+          </ul>
+          <button class="btn">Auswählen</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?w=800&q=80" alt="Deluxe Wäsche" class="card-image" onerror="this.style.background='linear-gradient(135deg, #e0e0e0, #f5f5f5)'">
+        <div class="card-content">
+          <div class="card-title">Deluxe Wäsche</div>
+          <div class="card-price">€16.90</div>
+          <ul class="card-features">
+            <li>Alles aus Premium</li>
+            <li>Unterbodenwäsche</li>
+            <li>Insektenentferner</li>
+            <li>Hochglanz-Politur</li>
+            <li>Innenraumduft</li>
+            <li>Reifenpflege</li>
+          </ul>
+          <button class="btn">Auswählen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab Content: Weather Offers -->
+  <div id="tab-weather-offers" class="tab-content">
+    
+    <!-- Default content - will be hidden when recommendations appear -->
+    <div id="weather-offers-default-content">
+      <div class="weather-hero-section">
+        <div class="weather-hero-badge">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+            <circle cx="12" cy="12" r="5"/>
+          </svg>
+          <span>Wetterbasierte Empfehlungen</span>
+        </div>
+        <h2>Personalisierte Autowäsche-Empfehlungen</h2>
+        <p>
+          Karsten analysiert die Wettervorhersage und gibt Ihnen personalisierte Empfehlungen für Autowäsche und Autopflege.
+        </p>
+        <button class="btn btn-modern" onclick="document.getElementById('chat-btn').click()">
+          Mit Karsten chatten
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14m-7-7l7 7-7 7"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="content-grid">
+        <div class="card">
+          <img src="https://images.unsplash.com/photo-1561484930-998b6a7b22e8?w=800&q=80" alt="Sonniges Wetter" class="card-image" onerror="this.style.background='linear-gradient(135deg, #ffd700, #ffa500)'">
+          <div class="card-content">
+            <div class="card-title">Sonnige Tage</div>
+            <div class="card-description">
+              Perfekt für eine Hochglanz-Wäsche! Nutzen Sie das schöne Wetter für eine intensive Autopflege.
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <img src="https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=800&q=80" alt="Regenwetter" class="card-image" onerror="this.style.background='linear-gradient(135deg, #4a5568, #718096)'">
+          <div class="card-content">
+            <div class="card-title">Vor dem Regen</div>
+            <div class="card-description">
+              Waschen Sie Ihr Auto vor dem Regen, um Schmutz und Ablagerungen zu entfernen.
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <img src="https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5?w=800&q=80" alt="Frühling" class="card-image" onerror="this.style.background='linear-gradient(135deg, #48bb78, #38a169)'">
+          <div class="card-content">
+            <div class="card-title">Frühjahrsputz</div>
+            <div class="card-description">
+              Ideal für den Reifenwechsel und eine komplette Fahrzeugpflege nach dem Winter.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Recommendations will be inserted here and default content will be hidden -->
+  </div>
+
+  <!-- Tab Content: Services -->
+  <div id="tab-services" class="tab-content">
+    <div class="content-hero-modern">
+      <div class="hero-badge">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+          <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+        </svg>
+        <span>Services & Produkte</span>
+      </div>
+      <h1>Services & Autopflegeprodukte</h1>
+      <p>Alles für die perfekte Autopflege - von professionellen Services bis zu hochwertigen Pflegeprodukten.</p>
+    </div>
+
+    <div class="content-grid">
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=800&q=80" alt="Innenreinigung" class="card-image" onerror="this.style.background='linear-gradient(135deg, #e0e0e0, #f5f5f5)'">
+        <div class="card-content">
+          <div class="card-title">Innenreinigung</div>
+          <div class="card-price">ab €29.90</div>
+          <div class="card-description">
+            Professionelle Innenraumreinigung mit Polsterreinigung, Staubsaugen und Cockpitpflege.
+          </div>
+          <button class="btn">Mehr erfahren</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=800&q=80" alt="Lackpolitur" class="card-image" onerror="this.style.background='linear-gradient(135deg, #e0e0e0, #f5f5f5)'">
+        <div class="card-content">
+          <div class="card-title">Lackpolitur</div>
+          <div class="card-price">ab €49.90</div>
+          <div class="card-description">
+            Hochglanz-Politur für perfekten Lackschutz und brillanten Glanz.
+          </div>
+          <button class="btn">Mehr erfahren</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1449130015084-2fae5eca97f4?w=800&q=80" alt="Pflegeprodukte" class="card-image" onerror="this.style.background='linear-gradient(135deg, #e0e0e0, #f5f5f5)'">
+        <div class="card-content">
+          <div class="card-title">Pflegeprodukte</div>
+          <div class="card-price">ab €8.90</div>
+          <div class="card-description">
+            Hochwertige Autopflegeprodukte für die Pflege zu Hause - Wachse, Reiniger, Polituren.
+          </div>
+          <button class="btn">Zum Shop</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80" alt="Reifenservice" class="card-image" onerror="this.style.background='linear-gradient(135deg, #e0e0e0, #f5f5f5)'">
+        <div class="card-content">
+          <div class="card-title">Reifenservice</div>
+          <div class="card-price">ab €19.90</div>
+          <div class="card-description">
+            Reifenwechsel, Einlagerung und professionelle Reifenpflege.
+          </div>
+          <button class="btn">Mehr erfahren</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1621939514649-280e2ee25f60?w=800&q=80" alt="Keramikversiegelung" class="card-image" onerror="this.style.background='linear-gradient(135deg, #e0e0e0, #f5f5f5)'">
+        <div class="card-content">
+          <div class="card-title">Keramikversiegelung</div>
+          <div class="card-price">ab €299.90</div>
+          <div class="card-description">
+            Langanhaltender Schutz mit Keramikversiegelung - bis zu 3 Jahre Haltbarkeit.
+          </div>
+          <button class="btn">Mehr erfahren</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800&q=80" alt="Abo-Modelle" class="card-image" onerror="this.style.background='linear-gradient(135deg, #e0e0e0, #f5f5f5)'">
+        <div class="card-content">
+          <div class="card-title">Wasch-Abo</div>
+          <div class="card-price">ab €39.90/Monat</div>
+          <div class="card-description">
+            Unbegrenzt waschen mit unserem Monats-Abo. Sparen Sie bis zu 40%!
+          </div>
+          <button class="btn">Jetzt abonnieren</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Avatar Container (only visible on weather-offers tab) -->
+  <div id="avatar-container"></div>
+
+  <!-- Speech Bubble (only visible on weather-offers tab) -->
+  <div id="speech-bubble"></div>
+
+  <!-- Enhanced Chat Popup -->
+  <div id="chat-popup" class="hidden">
+    <div class="chat-header">
+      <div class="chat-header-info">
+        <div class="chat-avatar">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="10" rx="2"/>
+            <circle cx="12" cy="5" r="2"/>
+            <path d="M12 7v4"/>
+            <line x1="8" y1="16" x2="8" y2="16"/>
+            <line x1="16" y1="16" x2="16" y2="16"/>
+          </svg>
+        </div>
+        <div>
+          <h3 data-i18n="chat-header">Chat mit Karsten</h3>
+          <div class="chat-status">
+            <span class="status-dot"></span>
+            <span>Online</span>
+          </div>
+        </div>
+      </div>
+      <button id="close-chat">×</button>
+    </div>
+    <div id="chat-messages"></div>
+    <div class="chat-input-container">
+      <input 
+        type="text" 
+        id="chat-input" 
+        placeholder="Frag mich etwas über das Wetter..." 
+        data-i18n-placeholder="chat-placeholder"
+      />
+      <button id="send-message" data-i18n="send-button">Senden</button>
+    </div>
+  </div>
+
+  <!-- Control Buttons (only visible on weather-offers tab) -->
+  <div class="controls">
+    <button id="chat-btn" class="control-btn" title="Chat öffnen">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+      </svg>
+      <span class="tooltip">Chat mit Karsten</span>
+    </button>
+    <button id="lang-toggle" class="control-btn" title="Sprache wechseln">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="2" y1="12" x2="22" y2="12"></line>
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+      </svg>
+      <span class="tooltip">Sprache ändern</span>
+    </button>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4>Circle K</h4>
+        <ul>
+          <li><a href="#">Über uns</a></li>
+          <li><a href="#">Karriere</a></li>
+          <li><a href="#">Presse</a></li>
+          <li><a href="#">Nachhaltigkeit</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Services</h4>
+        <ul>
+          <li><a href="#">Waschanlagen</a></li>
+          <li><a href="#">Tankstellen</a></li>
+          <li><a href="#">Shop</a></li>
+          <li><a href="#">Kundenkarte</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Support</h4>
+        <ul>
+          <li><a href="#">Kontakt</a></li>
+          <li><a href="#">FAQ</a></li>
+          <li><a href="#">Standorte</a></li>
+          <li><a href="#">Feedback</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Rechtliches</h4>
+        <ul>
+          <li><a href="#">Impressum</a></li>
+          <li><a href="#">Datenschutz</a></li>
+          <li><a href="#">AGB</a></li>
+          <li><a href="#">Cookie-Einstellungen</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      © 2026 Circle K Deutschland GmbH. Alle Rechte vorbehalten.
+    </div>
+  </div>
+
+  <!-- Load modules -->
+  <script type="module" src="./main.js"></script>
+  <script type="module" src="./chat.js"></script>
+  <script type="module" src="recommendations-redesign.js"></script>
+
+  <script>
+    // Tab switching logic with avatar visibility control
+    const avatarContainer = document.getElementById('avatar-container');
+    const speechBubble = document.getElementById('speech-bubble');
+    const recommendationsContainer = document.getElementById('recommendations-section');
+    const controls = document.querySelector('.controls');
+    const chatPopup = document.getElementById('chat-popup');
+
+    function showAvatarElements() {
+      avatarContainer?.classList.add('visible');
+      speechBubble?.classList.add('visible');
+      recommendationsContainer?.classList.add('visible');
+      controls?.classList.add('visible');
+    }
+
+    function hideAvatarElements() {
+      avatarContainer?.classList.remove('visible');
+      speechBubble?.classList.remove('visible');
+      recommendationsContainer?.classList.remove('visible');
+      controls?.classList.remove('visible');
+      // Also hide chat when leaving weather-offers tab
+      chatPopup?.classList.add('hidden');
+      chatPopup?.classList.remove('visible');
+    }
+
+    document.querySelectorAll('.tab-button').forEach(button => {
+      button.addEventListener('click', () => {
+        const targetTab = button.dataset.tab;
+        
+        // Update active button
+        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+        
+        // Update active content
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        document.getElementById(`tab-${targetTab}`).classList.add('active');
+        
+        // Show/hide avatar elements based on tab
+        if (targetTab === 'weather-offers') {
+          showAvatarElements();
+          // Trigger Circle K greeting when weather-offers tab is activated
+          if (window.activateCircleKTab) {
+            setTimeout(() => window.activateCircleKTab(), 500);
+          }
+        } else {
+          hideAvatarElements();
+        }
+      });
+    });
+
+    // Chat button functionality
+    const chatBtn = document.getElementById('chat-btn');
+    const closeChat = document.getElementById('close-chat');
+
+    chatBtn?.addEventListener('click', () => {
+      chatPopup?.classList.remove('hidden');
+      chatPopup?.classList.add('visible');
+    });
+
+    closeChat?.addEventListener('click', () => {
+      chatPopup?.classList.add('hidden');
+      chatPopup?.classList.remove('visible');
+    });
+
+    // Language toggle with better display
+    const langToggle = document.getElementById('lang-toggle');
+    let currentLang = 'DE';
+
+    langToggle?.addEventListener('click', () => {
+      currentLang = currentLang === 'DE' ? 'EN' : 'DE';
+      langToggle.textContent = currentLang;
+      
+      // Update tooltip
+      const tooltip = langToggle.querySelector('.tooltip');
+      if (tooltip) {
+        tooltip.textContent = currentLang === 'DE' ? 'Switch to English' : 'Auf Deutsch wechseln';
+      }
+      
+      // Trigger language change in language manager
+      if (window.languageManager) {
+        window.languageManager.toggleLanguage();
+      }
+    });
+
+    // Initialize - show avatar on weather-offers tab if it's active on load
+    window.addEventListener('DOMContentLoaded', () => {
+      const activeTab = document.querySelector('.tab-button.active');
+      if (activeTab && activeTab.dataset.tab === 'weather-offers') {
+        showAvatarElements();
+        setTimeout(() => {
+          if (window.activateCircleKTab) {
+            window.activateCircleKTab();
+          }
+        }, 1000);
+      } else {
+        hideAvatarElements();
+      }
+    });
+  </script>
+</body>
+</html>

@@ -5,6 +5,7 @@ import { buildVisemeTimeline } from './lipsync.js';
 import { getWeatherSummary, fetchWeatherAndSpeak, startClothingRecommendationCache } from './weather.js';
 import { initAvatar } from './avatar.js';
 import { startVoiceInput, stopVoiceInput, isVoiceInputActive, updateVoiceInputLanguage } from './voice-input.js';
+import './recommendations.js';
 
 const container = document.getElementById('avatar-container');
 
@@ -110,7 +111,6 @@ const lipSync = {
     if (avatarController.model) {
       avatarController.model.scale.set(currentScale, currentScale, currentScale);
     }
-    setTimeout(() => attemptAutoSpeak(), 150);
   } catch (e) {
     console.error('Failed to initialize avatar:', e);
   }
@@ -242,8 +242,12 @@ window.say = (t) => speak(t);
 window.sayWeather = () => fetchWeatherAndSpeak();
 window.speak = speak;
 window.getWeatherSummary = getWeatherSummary;
-window.showSpeechBubble = showSpeechBubble;
-window.hideSpeechBubble = hideSpeechBubble;
+window.activateCircleKTab = activateCircleKTab;
+window.speakCircleKGreeting = speakCircleKGreeting;
+
+// Chat and language functions are exposed by their respective modules
+// window.chatManager is exposed by chat.js
+// languageManager.toggleLanguage() is available via languageManager
 
 // Processing indicator helpers
 window.showProcessing = () => {
@@ -382,23 +386,40 @@ window.addEventListener('DOMContentLoaded', () => {
   startClothingRecommendationCache();
 });
 
-function attemptAutoSpeak() {
-  if (autoSequenceStarted || !avatarController || !avatarController.model) return;
-  autoSequenceStarted = true;
-  const greeting = languageManager.t('weather-greeting');
+// Circle K greeting - only triggered on tab activation
+function speakCircleKGreeting() {
+  if (!avatarController || !avatarController.model) {
+    console.warn('⚠️ Avatar not ready for speech');
+    return;
+  }
+  
+  const greeting = languageManager.t('circle-k-greeting');
+  console.log('🎙️ Speaking Circle K greeting:', greeting);
+  console.log('🎤 Avatar controller ready:', !!avatarController);
+  console.log('🎤 Avatar model loaded:', !!avatarController.model);
+  
   try {
-    // Use ElevenLabs directly - no browser voice loading needed
-    speakThen(greeting, () => fetchWeatherAndSpeak());
+    speak(greeting);
+    console.log('✅ Speech initiated successfully');
   } catch (e) {
-    // Likely blocked by autoplay policies; set gesture fallback
-    autoSequenceStarted = false; // allow retry via gesture
+    console.error('❌ Speech error:', e);
   }
 }
 
-// If autoplay is blocked, trigger auto-speak on first user gesture
+// Circle K tab activation handler - triggers greeting
+function activateCircleKTab() {
+  console.log('🔴 Circle K weather-offers tab activated');
+  // Reset flag to allow greeting on every tab activation
+  autoSequenceStarted = false;
+  // Always speak greeting when tab is activated
+  speakCircleKGreeting();
+}
+
+// DO NOT auto-speak on page load - only on tab activation
+// Removed auto-speak gesture handlers to prevent unwanted greeting
 ['click', 'keydown', 'touchstart'].forEach((evt) => {
   const handler = () => {
-    attemptAutoSpeak();
+    // No longer auto-speaking on first gesture
     window.removeEventListener(evt, handler);
   };
   window.addEventListener(evt, handler, { once: true });

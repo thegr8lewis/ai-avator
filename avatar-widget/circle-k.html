@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Waschanlagenfinder | Circle K - Angebote passend zum Wetter</title>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"
+      }
+    }
+  </script>
+  <script src="./env.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+      overflow-x: hidden;
+    }
+
+    /* Circle K Branding Colors */
+    :root {
+      --circle-k-red: #E30613;
+      --circle-k-white: #FFFFFF;
+      --circle-k-dark: #1a1a1a;
+      --circle-k-gray: #666666;
+    }
+
+    /* Header with Circle K Branding */
+    .circle-k-header {
+      background: var(--circle-k-red);
+      color: var(--circle-k-white);
+      padding: 20px 40px;
+      box-shadow: 0 4px 12px rgba(227, 6, 19, 0.3);
+    }
+
+    .circle-k-logo {
+      font-size: 32px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .circle-k-logo::before {
+      content: '⭕';
+      font-size: 40px;
+    }
+
+    .page-title {
+      font-size: 24px;
+      margin-top: 10px;
+      font-weight: 300;
+    }
+
+    /* Tab Navigation */
+    .tab-container {
+      background: var(--circle-k-white);
+      border-bottom: 3px solid var(--circle-k-red);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .tab-nav {
+      display: flex;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    .tab-button {
+      padding: 18px 32px;
+      background: transparent;
+      border: none;
+      border-bottom: 4px solid transparent;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--circle-k-gray);
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .tab-button:hover {
+      color: var(--circle-k-red);
+      background: rgba(227, 6, 19, 0.05);
+    }
+
+    .tab-button.active {
+      color: var(--circle-k-red);
+      border-bottom-color: var(--circle-k-red);
+      font-weight: 600;
+    }
+
+    .tab-button.active::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--circle-k-red);
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from { transform: scaleX(0); }
+      to { transform: scaleX(1); }
+    }
+
+    /* Tab Content */
+    .tab-content {
+      display: none;
+      padding: 40px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+      min-height: 600px;
+    }
+
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Avatar Container */
+    #avatar-container {
+      position: fixed;
+      bottom: 120px;
+      left: 40px;
+      width: 220px;
+      height: 420px;
+      z-index: 9999;
+      pointer-events: auto;
+      border-radius: 20px;
+      overflow: visible;
+      background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(240,240,240,0.95));
+      backdrop-filter: blur(20px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2),
+                  0 0 40px rgba(227, 6, 19, 0.1);
+      border: 2px solid rgba(227, 6, 19, 0.2);
+      animation: avatarFloat 6s ease-in-out infinite;
+    }
+
+    @keyframes avatarFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+
+    /* Speech Bubble */
+    #speech-bubble {
+      position: fixed;
+      bottom: 560px;
+      left: 40px;
+      max-width: 400px;
+      padding: 20px 24px;
+      background: linear-gradient(135deg, var(--circle-k-red), #c70512);
+      color: var(--circle-k-white);
+      border-radius: 16px;
+      box-shadow: 0 12px 40px rgba(227, 6, 19, 0.4);
+      font-size: 15px;
+      line-height: 1.6;
+      opacity: 0;
+      transform: translateY(20px) scale(0.95);
+      transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 10000;
+      pointer-events: none;
+    }
+
+    #speech-bubble.active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    #speech-bubble::before {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 40px;
+      width: 0;
+      height: 0;
+      border-left: 12px solid transparent;
+      border-right: 12px solid transparent;
+      border-top: 12px solid #c70512;
+    }
+
+    /* Recommendations Section */
+    .recommendations-container {
+      position: fixed;
+      right: 40px;
+      top: 200px;
+      width: 450px;
+      opacity: 0;
+      transform: translateX(50px);
+      transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 1000;
+    }
+
+    .recommendations-container.active {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .recommendations-container.fade-out {
+      opacity: 0;
+      transform: translateX(50px);
+    }
+
+    .recommendation-card {
+      background: var(--circle-k-white);
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+      overflow: hidden;
+      border: 3px solid var(--circle-k-red);
+    }
+
+    .recommendation-header {
+      background: var(--circle-k-red);
+      color: var(--circle-k-white);
+      padding: 24px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .recommendation-header h2 {
+      font-size: 22px;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .circle-k-logo-small {
+      font-size: 28px;
+      opacity: 0.9;
+    }
+
+    .recommendation-body {
+      padding: 28px;
+    }
+
+    .wash-program, .product-item {
+      padding: 20px;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #f9f9f9, #ffffff);
+      border-radius: 12px;
+      border-left: 4px solid var(--circle-k-red);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .wash-program:hover, .product-item:hover {
+      transform: translateX(8px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    }
+
+    .wash-program.highlight, .product-item.highlight {
+      background: linear-gradient(135deg, #fff5f5, #ffffff);
+      border-left-width: 6px;
+      box-shadow: 0 8px 24px rgba(227, 6, 19, 0.15);
+    }
+
+    .wash-program h3, .product-item h3 {
+      font-size: 18px;
+      margin-bottom: 8px;
+      color: var(--circle-k-dark);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .wash-program p, .product-item p {
+      color: var(--circle-k-gray);
+      font-size: 14px;
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+
+    .price {
+      display: inline-block;
+      font-size: 20px;
+      font-weight: bold;
+      color: var(--circle-k-red);
+    }
+
+    .price.special {
+      font-size: 24px;
+      background: linear-gradient(135deg, var(--circle-k-red), #ff1a1a);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .badge {
+      display: inline-block;
+      margin-left: 12px;
+      padding: 4px 12px;
+      background: var(--circle-k-red);
+      color: var(--circle-k-white);
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+    }
+
+    .recommendation-footer {
+      padding: 20px 28px;
+      background: linear-gradient(135deg, #fff5f5, #ffffff);
+      border-top: 2px solid rgba(227, 6, 19, 0.1);
+      text-align: center;
+    }
+
+    .recommendation-footer p {
+      margin: 0;
+      color: var(--circle-k-red);
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    /* Chat Interface */
+    #chat-popup {
+      position: fixed;
+      bottom: 40px;
+      right: 40px;
+      width: 400px;
+      height: 600px;
+      background: var(--circle-k-white);
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      border: 2px solid var(--circle-k-red);
+      display: flex;
+      flex-direction: column;
+      z-index: 10000;
+      overflow: hidden;
+    }
+
+    #chat-popup.hidden {
+      display: none;
+    }
+
+    .chat-header {
+      background: var(--circle-k-red);
+      color: var(--circle-k-white);
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .chat-header h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    #close-chat {
+      background: none;
+      border: none;
+      color: var(--circle-k-white);
+      font-size: 24px;
+      cursor: pointer;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: background 0.3s ease;
+    }
+
+    #close-chat:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    #chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      background: #f9f9f9;
+    }
+
+    .message {
+      margin-bottom: 16px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      max-width: 80%;
+      line-height: 1.5;
+      animation: messageSlide 0.3s ease;
+    }
+
+    @keyframes messageSlide {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .user-message {
+      background: #e3f2fd;
+      margin-left: auto;
+      text-align: right;
+    }
+
+    .avatar-message {
+      background: var(--circle-k-white);
+      border: 1px solid #e0e0e0;
+    }
+
+    .typing-indicator {
+      display: flex;
+      gap: 4px;
+      padding: 12px 16px;
+      background: var(--circle-k-white);
+      border-radius: 12px;
+      width: fit-content;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      background: var(--circle-k-red);
+      border-radius: 50%;
+      animation: typingDot 1.4s infinite;
+    }
+
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typingDot {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+      30% { transform: translateY(-10px); opacity: 1; }
+    }
+
+    .chat-input-container {
+      padding: 20px;
+      background: var(--circle-k-white);
+      border-top: 1px solid #e0e0e0;
+      display: flex;
+      gap: 12px;
+    }
+
+    #chat-input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 24px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.3s ease;
+    }
+
+    #chat-input:focus {
+      border-color: var(--circle-k-red);
+    }
+
+    #send-message {
+      padding: 12px 24px;
+      background: var(--circle-k-red);
+      color: var(--circle-k-white);
+      border: none;
+      border-radius: 24px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    #send-message:hover {
+      background: #c70512;
+      transform: scale(1.05);
+    }
+
+    /* Control Buttons */
+    .controls {
+      position: fixed;
+      bottom: 40px;
+      left: 40px;
+      display: flex;
+      gap: 12px;
+      z-index: 10001;
+    }
+
+    .control-btn {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: none;
+      background: var(--circle-k-red);
+      color: var(--circle-k-white);
+      font-size: 24px;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(227, 6, 19, 0.4);
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .control-btn:hover {
+      background: #c70512;
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(227, 6, 19, 0.5);
+    }
+
+    .control-btn:active {
+      transform: translateY(-2px);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+      .recommendations-container {
+        right: 20px;
+        width: 380px;
+      }
+
+      #avatar-container {
+        left: 20px;
+        bottom: 100px;
+      }
+
+      #speech-bubble {
+        left: 20px;
+        max-width: 320px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .tab-nav {
+        flex-direction: column;
+      }
+
+      .tab-button {
+        border-bottom: none;
+        border-left: 4px solid transparent;
+      }
+
+      .tab-button.active {
+        border-left-color: var(--circle-k-red);
+        border-bottom-color: transparent;
+      }
+
+      .recommendations-container {
+        position: relative;
+        right: auto;
+        top: auto;
+        width: 100%;
+        margin: 20px 0;
+      }
+
+      #chat-popup {
+        width: 100%;
+        height: 100vh;
+        bottom: 0;
+        right: 0;
+        border-radius: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Circle K Header -->
+  <div class="circle-k-header">
+    <div class="circle-k-logo">
+      <span>K</span>
+      <span>Circle K</span>
+    </div>
+    <div class="page-title">Waschanlagenfinder</div>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="tab-container">
+    <div class="tab-nav">
+      <button class="tab-button" data-tab="finder">Waschanlage finden</button>
+      <button class="tab-button" data-tab="programs">Waschprogramme</button>
+      <button class="tab-button active" data-tab="weather-offers">Angebote – passend zum Wetter</button>
+      <button class="tab-button" data-tab="services">Services</button>
+    </div>
+  </div>
+
+  <!-- Tab Content -->
+  <div id="tab-finder" class="tab-content">
+    <h2>Waschanlage in Ihrer Nähe finden</h2>
+    <p>Nutzen Sie unsere Karte, um die nächste Circle K Waschanlage zu finden...</p>
+  </div>
+
+  <div id="tab-programs" class="tab-content">
+    <h2>Unsere Waschprogramme</h2>
+    <p>Wählen Sie aus unseren professionellen Waschprogrammen...</p>
+  </div>
+
+  <div id="tab-weather-offers" class="tab-content active">
+    <h2>Digitaler Karsten - Ihr Wetter-Assistent</h2>
+    <p style="color: var(--circle-k-gray); margin-top: 12px; font-size: 16px;">
+      Lassen Sie sich vom Wetter inspirieren! Karsten hilft Ihnen, den perfekten Zeitpunkt für Ihre Autowäsche zu finden.
+    </p>
+  </div>
+
+  <div id="tab-services" class="tab-content">
+    <h2>Weitere Services</h2>
+    <p>Entdecken Sie unsere zusätzlichen Dienstleistungen...</p>
+  </div>
+
+  <!-- Avatar Container -->
+  <div id="avatar-container"></div>
+
+  <!-- Speech Bubble -->
+  <div id="speech-bubble"></div>
+
+  <!-- Recommendations Section (dynamically populated) -->
+  <div id="recommendations-section" class="recommendations-container hidden"></div>
+
+  <!-- Chat Popup -->
+  <div id="chat-popup" class="hidden">
+    <div class="chat-header">
+      <h3 data-i18n="chat-header">Chat mit Karsten</h3>
+      <button id="close-chat">×</button>
+    </div>
+    <div id="chat-messages"></div>
+    <div class="chat-input-container">
+      <input 
+        type="text" 
+        id="chat-input" 
+        placeholder="Frag mich etwas über das Wetter..." 
+        data-i18n-placeholder="chat-placeholder"
+      />
+      <button id="send-message" data-i18n="send-button">Senden</button>
+    </div>
+  </div>
+
+  <!-- Control Buttons -->
+  <div class="controls">
+    <button id="chat-btn" class="control-btn" title="Chat öffnen">💬</button>
+    <button id="lang-toggle" class="control-btn" title="Sprache wechseln">🌐</button>
+  </div>
+
+  <!-- Load modules -->
+  <script type="module" src="./main.js"></script>
+  <script type="module" src="./chat.js"></script>
+  <script type="module" src="./recommendations.js"></script>
+
+  <script>
+    // Tab switching logic
+    document.querySelectorAll('.tab-button').forEach(button => {
+      button.addEventListener('click', () => {
+        const targetTab = button.dataset.tab;
+        
+        // Update active button
+        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+        
+        // Update active content
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        document.getElementById(`tab-${targetTab}`).classList.add('active');
+        
+        // Trigger Circle K greeting when weather-offers tab is activated
+        if (targetTab === 'weather-offers' && window.activateCircleKTab) {
+          window.activateCircleKTab();
+        }
+      });
+    });
+
+    // Auto-activate Circle K tab on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        if (window.activateCircleKTab) {
+          window.activateCircleKTab();
+        }
+      }, 1000);
+    });
+  </script>
+</body>
+</html>
