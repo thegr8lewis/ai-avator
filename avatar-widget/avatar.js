@@ -258,11 +258,38 @@ export function initAvatar({ scene, camera, url, lipSync, enableProceduralGestur
     if (!controllerModel) return;
     if (controllerMixer) controllerMixer.update(dt);
     const t = performance.now() * 0.001;
-    controllerModel.position.y = baseY + Math.sin(t * 1.2) * 0.008;
-    controllerModel.rotation.y = Math.sin((t + Math.random()) * 0.4) * 0.02;
-    controllerModel.rotation.x = Math.sin(t * 0.33) * 0.01;
-    const breath = (Math.sin(t * 0.5) * 0.5 + 0.5) * 0.04;
-    if (chestBone) { chestBone.position.y = damp(chestBone.position.y, breath * 0.01, 10, dt); chestBone.scale.y = 1 + breath; }
+    
+    // VERY NOTICEABLE body sway and breathing
+    const breathCycle = Math.sin(t * 0.6); // Slower, more natural breathing
+    const swayCycle = Math.sin(t * 0.35); // Gentle body sway
+    
+    // Vertical breathing motion - MUCH more visible
+    controllerModel.position.y = baseY + breathCycle * 0.045 + Math.sin(t * 1.8) * 0.015;
+    
+    // Body rotation - VERY noticeable sway and shift
+    controllerModel.rotation.y = swayCycle * 0.12 + Math.sin(t * 0.8) * 0.05;
+    controllerModel.rotation.x = Math.sin(t * 0.4) * 0.06;
+    controllerModel.rotation.z = Math.sin(t * 0.5) * 0.045; // Noticeable tilt
+    
+    // VERY pronounced chest breathing
+    const breath = (breathCycle * 0.5 + 0.5) * 0.18; // Much more pronounced breathing
+    if (chestBone) { 
+      chestBone.position.y = damp(chestBone.position.y, breath * 0.06, 10, dt); 
+      chestBone.scale.y = 1 + breath * 1.5;
+      chestBone.scale.x = 1 + breath * 0.8; // Chest expands sideways significantly
+    }
+    
+    // NOTICEABLE spine movement for posture shifts
+    if (spineBone) {
+      spineBone.rotation.y = damp(spineBone.rotation.y, swayCycle * 0.08, 6, dt);
+      spineBone.rotation.x = damp(spineBone.rotation.x, Math.sin(t * 0.45) * 0.05, 6, dt);
+    }
+    
+    // VISIBLE neck movement
+    if (neckBone) {
+      neckBone.rotation.y = damp(neckBone.rotation.y, Math.sin(t * 0.7) * 0.09, 8, dt);
+      neckBone.rotation.x = damp(neckBone.rotation.x, breathCycle * 0.06, 8, dt);
+    }
     
     // Lip sync / viseme application
     if (lipSync) {
@@ -317,13 +344,18 @@ export function initAvatar({ scene, camera, url, lipSync, enableProceduralGestur
         headBone.rotation.y = damp(headBone.rotation.y, sideTilt, 10, dt);
         headBone.rotation.z = damp(headBone.rotation.z, sideTilt * 0.5, 10, dt);
       } else {
-        // Idle head movement
-        const nod = speakAmp * 0.05 * Math.sin(t * 8);
-        const targetX = tilt + nod;
-        const targetY = 0.02 * Math.sin((t + 1.7) * 0.9);
-        headBone.rotation.x = damp(headBone.rotation.x, targetX, 8, dt);
-        headBone.rotation.y = damp(headBone.rotation.y, targetY, 8, dt);
-        headBone.rotation.z = damp(headBone.rotation.z, 0, 8, dt);
+        // VERY NOTICEABLE idle head movement
+        const nod = Math.sin(t * 0.6) * 0.12; // Very visible nodding
+        const lookAround = Math.sin(t * 0.4 + 1.7) * 0.18; // Obvious looking around
+        const microTilt = Math.sin(t * 1.1) * 0.08; // Noticeable head tilts
+        
+        const targetX = tilt * 2 + nod;
+        const targetY = lookAround;
+        const targetZ = microTilt;
+        
+        headBone.rotation.x = damp(headBone.rotation.x, targetX, 6, dt);
+        headBone.rotation.y = damp(headBone.rotation.y, targetY, 6, dt);
+        headBone.rotation.z = damp(headBone.rotation.z, targetZ, 6, dt);
       }
     }
     // Hand/arm gestures - only active when speaking
@@ -385,10 +417,13 @@ export function initAvatar({ scene, camera, url, lipSync, enableProceduralGestur
     }
     const now = performance.now() * 0.001;
     if (now >= nextSaccadeAt) {
-      const gx = (Math.random() - 0.5) * 0.2;
-      const gy = (Math.random() - 0.5) * 0.15;
+      // More varied eye movements - looks more natural
+      const gx = (Math.random() - 0.5) * 0.35; // Wider horizontal range
+      const gy = (Math.random() - 0.5) * 0.25; // More vertical variation
       gazeTarget.set(gx, 1.5 + gy, 2.0);
-      nextSaccadeAt = now + (0.18 + Math.random() * 0.6);
+      // Variable timing - sometimes quick glances, sometimes longer gazes
+      const isQuickGlance = Math.random() < 0.3;
+      nextSaccadeAt = now + (isQuickGlance ? 0.15 + Math.random() * 0.3 : 0.8 + Math.random() * 1.5);
     }
     const eyes = [leftEyeBone, rightEyeBone].filter(Boolean);
     for (const eye of eyes) {
@@ -404,10 +439,18 @@ export function initAvatar({ scene, camera, url, lipSync, enableProceduralGestur
     const blinkNow = performance.now() * 0.001;
     if (!blinking && blinkNow >= nextBlinkAt) { blinking = true; blinkPhase = 0; }
     if (blinking) {
-      blinkPhase += dt / 0.08;
+      // Slightly slower, more natural blink
+      blinkPhase += dt / 0.1;
       if (blinkPhase < 1) { setBlink(clamp(blinkPhase, 0, 1), clamp(blinkPhase, 0, 1)); }
       else if (blinkPhase < 2) { const v = clamp(2 - blinkPhase, 0, 1); setBlink(v, v); }
-      else { setBlink(0, 0); blinking = false; const base = 3 + Math.random() * 4; nextBlinkAt = blinkNow + base; if (Math.random() < 0.18) nextBlinkAt = blinkNow + 0.25; }
+      else { 
+        setBlink(0, 0); 
+        blinking = false; 
+        // More varied blink timing - sometimes double blinks
+        const base = 2.5 + Math.random() * 3.5; 
+        nextBlinkAt = blinkNow + base; 
+        if (Math.random() < 0.25) nextBlinkAt = blinkNow + 0.2; // Quick double blink
+      }
     }
   }
 

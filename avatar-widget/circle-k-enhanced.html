@@ -106,22 +106,29 @@
     }
 
     .header-btn {
-      padding: 10px 20px;
-      background: rgba(255,255,255,0.15);
-      border: 2px solid rgba(255,255,255,0.3);
+      background: transparent;
       color: var(--circle-k-white);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      padding: 10px 24px;
       border-radius: 8px;
-      cursor: pointer;
+      font-size: 15px;
       font-weight: 600;
-      font-size: 14px;
+      cursor: pointer;
       transition: all 0.3s ease;
-      backdrop-filter: blur(10px);
+      font-family: 'Inter', sans-serif;
+      display: inline-flex;
+      align-items: center;
     }
 
     .header-btn:hover {
-      background: rgba(255,255,255,0.25);
-      border-color: rgba(255,255,255,0.5);
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.5);
       transform: translateY(-2px);
+    }
+
+    .header-btn.active {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.6);
     }
 
     /* Tab Navigation */
@@ -1542,6 +1549,14 @@
       <div class="header-actions">
         <button class="header-btn" onclick="window.location.href='#tab-finder'">Standorte</button>
         <button class="header-btn" onclick="window.location.href='#tab-programs'">Angebote</button>
+        <button class="header-btn" id="avatar-visibility-toggle">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 6px;">
+            <rect x="3" y="11" width="18" height="10" rx="2"/>
+            <circle cx="12" cy="5" r="2"/>
+            <path d="M12 7v4"/>
+          </svg>
+          <span id="avatar-toggle-text">Avatar anzeigen</span>
+        </button>
       </div>
     </div>
   </div>
@@ -1986,6 +2001,11 @@
     const toggleSwitch = document.getElementById('toggle-switch');
     const mode3DText = document.getElementById('mode-3d');
     const modeBPText = document.getElementById('mode-bp');
+    const avatarVisibilityToggle = document.getElementById('avatar-visibility-toggle');
+    const avatarToggleText = document.getElementById('avatar-toggle-text');
+
+    // Avatar visibility state
+    let isAvatarEnabled = false;
 
     // Get Beyond Presence agent ID from env.js
     const BEYOND_PRESENCE_AGENT_ID = window.BEYOND_PRESENCE_AGENT_ID || '';
@@ -2051,7 +2071,34 @@
       console.warn('Get your agent ID from: https://app.bey.chat/myAgents');
     }
 
+    // Avatar visibility toggle handler
+    avatarVisibilityToggle?.addEventListener('click', () => {
+      isAvatarEnabled = !isAvatarEnabled;
+      
+      if (isAvatarEnabled) {
+        // Enable avatar
+        avatarVisibilityToggle.classList.add('active');
+        avatarToggleText.textContent = 'Avatar ausblenden';
+        
+        // Show avatar elements if on weather-offers tab
+        const activeTab = document.querySelector('.tab-button.active');
+        if (activeTab && activeTab.dataset.tab === 'weather-offers') {
+          showAvatarElements();
+        }
+      } else {
+        // Disable avatar
+        avatarVisibilityToggle.classList.remove('active');
+        avatarToggleText.textContent = 'Avatar anzeigen';
+        
+        // Hide all avatar elements
+        hideAvatarElements();
+      }
+    });
+
     function showAvatarElements() {
+      // Only show avatar elements if avatar is enabled
+      if (!isAvatarEnabled) return;
+      
       avatarModeToggle?.classList.add('visible');
       // Only show 3D avatar elements if not in Beyond Presence mode
       if (!isBeyondPresenceMode) {

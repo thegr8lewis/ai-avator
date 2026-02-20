@@ -15,10 +15,23 @@ let hooks = { onStart: null, onBoundary: null, onEnd: null };
 let currentAudio = null;
 let boundaryInterval = null;
 
-// Sanitize text by removing markdown formatting
+// Format temperature for speech - convert minus sign to word
+function formatTemperatureForSpeech(temp, lang = 'de') {
+  const tempNum = Number(temp);
+  if (isNaN(tempNum)) return String(temp);
+  
+  if (tempNum < 0) {
+    const absTemp = Math.abs(tempNum);
+    return lang === 'de' ? `minus ${absTemp}` : `minus ${absTemp}`;
+  }
+  return String(tempNum);
+}
+
+// Sanitize text by removing markdown formatting and fixing temperature pronunciation
 function sanitizeText(text) {
   if (!text) return text;
-  return text
+  
+  let cleaned = text
     .replace(/\*\*/g, '')  // Remove bold **
     .replace(/\*/g, '')    // Remove italic *
     .replace(/\_\_/g, '')  // Remove bold __
@@ -27,6 +40,23 @@ function sanitizeText(text) {
     .replace(/\#\#/g, '')  // Remove h2 ##
     .replace(/\#/g, '')    // Remove h1 #
     .trim();
+  
+  // Fix temperature pronunciation: convert "-5°C" to "minus 5°C"
+  // Match patterns like: -5, -10, -15 followed by optional space and degree symbol
+  cleaned = cleaned.replace(/(-\d+)\s*°/g, (match, tempWithMinus) => {
+    const temp = parseInt(tempWithMinus);
+    const absTemp = Math.abs(temp);
+    return `minus ${absTemp}°`;
+  });
+  
+  // Also handle temperatures without degree symbol: "-5 Grad" or "-5 degrees"
+  cleaned = cleaned.replace(/(-\d+)\s+(Grad|degrees|degree)/gi, (match, tempWithMinus, unit) => {
+    const temp = parseInt(tempWithMinus);
+    const absTemp = Math.abs(temp);
+    return `minus ${absTemp} ${unit}`;
+  });
+  
+  return cleaned;
 }
 
 export function setSpeechHooks(newHooks) {
@@ -131,6 +161,8 @@ export async function speak(text) {
     stopCurrentAudio();
     const cleanText = sanitizeText(text);
     console.log('🎙️ Generating speech with ElevenLabs...');
+    console.log('📝 Original text:', text.substring(0, 100));
+    console.log('📝 Cleaned text:', cleanText.substring(0, 100));
     const audioUrl = await generateSpeech(cleanText);
     playAudio(audioUrl, cleanText);
   } catch (error) {
