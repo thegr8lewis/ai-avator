@@ -1399,6 +1399,133 @@
     .hidden {
       display: none !important;
     }
+
+    /* Avatar Mode Toggle Switch */
+    #avatar-mode-toggle {
+      position: fixed;
+      top: 120px;
+      right: 40px;
+      z-index: 10002;
+      background: linear-gradient(135deg, rgba(227, 6, 19, 0.95), rgba(199, 5, 18, 0.95));
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      padding: 12px 20px;
+      display: none;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 8px 32px rgba(227, 6, 19, 0.4), 0 0 16px rgba(227, 6, 19, 0.2);
+      animation: toggleFadeIn 0.6s ease-out;
+    }
+
+    #avatar-mode-toggle.visible {
+      display: flex;
+    }
+
+    @keyframes toggleFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .toggle-label {
+      color: var(--circle-k-white);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 60px;
+      height: 30px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 15px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .toggle-switch.active {
+      background: rgba(255, 255, 255, 0.4);
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+    }
+
+    .toggle-slider {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 22px;
+      height: 22px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .toggle-switch.active .toggle-slider {
+      transform: translateX(30px);
+    }
+
+    .mode-text {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .mode-text.active {
+      color: white;
+    }
+
+    /* Beyond Presence Container */
+    #beyond-presence-container {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      width: 450px;
+      height: 650px;
+      z-index: 9999;
+      pointer-events: auto;
+      border-radius: 24px;
+      overflow: hidden;
+      background: #ffffff;
+      display: none;
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(0, 0, 0, 0.1);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    #beyond-presence-container.visible {
+      display: block;
+      animation: fadeInScale 0.5s ease forwards;
+    }
+
+    @keyframes fadeInScale {
+      from {
+        opacity: 0;
+        transform: scale(0.95) translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    #beyond-presence-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      border-radius: 24px;
+      background: #ffffff;
+    }
   </style>
 </head>
 <body>
@@ -1717,11 +1844,31 @@
     </div>
   </div>
 
+  <!-- Avatar Mode Toggle (only visible on weather-offers tab) -->
+  <div id="avatar-mode-toggle">
+    <span class="mode-text active" id="mode-3d">3D Avatar</span>
+    <div class="toggle-switch" id="toggle-switch">
+      <div class="toggle-slider"></div>
+    </div>
+    <span class="mode-text" id="mode-bp">Beyond Presence</span>
+  </div>
+
   <!-- Avatar Container (only visible on weather-offers tab) -->
   <div id="avatar-container"></div>
 
   <!-- Speech Bubble (only visible on weather-offers tab) -->
   <div id="speech-bubble"></div>
+
+  <!-- Beyond Presence Container (only visible on weather-offers tab when toggled) -->
+  <div id="beyond-presence-container">
+    <iframe 
+      id="beyond-presence-iframe"
+      src=""
+      frameborder="0" 
+      allowfullscreen 
+      allow="camera; microphone; fullscreen"
+    ></iframe>
+  </div>
 
   <!-- Enhanced Chat Popup -->
   <div id="chat-popup" class="hidden">
@@ -1833,19 +1980,97 @@
     const recommendationsContainer = document.getElementById('recommendations-section');
     const controls = document.querySelector('.controls');
     const chatPopup = document.getElementById('chat-popup');
+    const avatarModeToggle = document.getElementById('avatar-mode-toggle');
+    const beyondPresenceContainer = document.getElementById('beyond-presence-container');
+    const beyondPresenceIframe = document.getElementById('beyond-presence-iframe');
+    const toggleSwitch = document.getElementById('toggle-switch');
+    const mode3DText = document.getElementById('mode-3d');
+    const modeBPText = document.getElementById('mode-bp');
+
+    // Get Beyond Presence agent ID from env.js
+    const BEYOND_PRESENCE_AGENT_ID = window.BEYOND_PRESENCE_AGENT_ID || '';
+
+    // Set iframe src if agent ID is available
+    if (BEYOND_PRESENCE_AGENT_ID && BEYOND_PRESENCE_AGENT_ID !== 'your-agent-id-here') {
+      beyondPresenceIframe.src = `https://bey.chat/${BEYOND_PRESENCE_AGENT_ID}`;
+    }
+
+    let isBeyondPresenceMode = false;
+
+    // Toggle between 3D Avatar and Beyond Presence
+    toggleSwitch?.addEventListener('click', () => {
+      isBeyondPresenceMode = !isBeyondPresenceMode;
+      
+      if (isBeyondPresenceMode) {
+        // Switch to Beyond Presence
+        toggleSwitch.classList.add('active');
+        
+        // Stop 3D avatar speech and hide elements
+        if (window.speechSynthesis) {
+          window.speechSynthesis.cancel();
+        }
+        
+        // Hide speech bubble immediately
+        const bubble = document.getElementById('speech-bubble');
+        if (bubble) {
+          bubble.classList.remove('active');
+          bubble.textContent = '';
+        }
+        
+        avatarContainer?.classList.remove('visible');
+        speechBubble?.classList.remove('visible');
+        controls?.classList.remove('visible');
+        chatPopup?.classList.add('hidden');
+        chatPopup?.classList.remove('visible');
+        beyondPresenceContainer?.classList.add('visible');
+        mode3DText?.classList.remove('active');
+        modeBPText?.classList.add('active');
+        
+        console.log('Switched to Beyond Presence mode');
+        if (!BEYOND_PRESENCE_AGENT_ID || BEYOND_PRESENCE_AGENT_ID === 'your-agent-id-here') {
+          console.error('Beyond Presence agent ID not configured!');
+          alert('Please configure your Beyond Presence agent ID in env.js\n\nGet your agent ID from: https://app.bey.chat/myAgents');
+        }
+      } else {
+        // Switch to 3D Avatar
+        toggleSwitch.classList.remove('active');
+        avatarContainer?.classList.add('visible');
+        speechBubble?.classList.add('visible');
+        controls?.classList.add('visible');
+        beyondPresenceContainer?.classList.remove('visible');
+        mode3DText?.classList.add('active');
+        modeBPText?.classList.remove('active');
+        
+        console.log('Switched to 3D Avatar mode');
+      }
+    });
+
+    // Check if Beyond Presence agent ID is configured
+    if (!BEYOND_PRESENCE_AGENT_ID || BEYOND_PRESENCE_AGENT_ID === 'your-agent-id-here') {
+      console.warn('Beyond Presence agent ID not configured. Please set BEYOND_PRESENCE_AGENT_ID in env.js');
+      console.warn('Get your agent ID from: https://app.bey.chat/myAgents');
+    }
 
     function showAvatarElements() {
-      avatarContainer?.classList.add('visible');
-      speechBubble?.classList.add('visible');
+      avatarModeToggle?.classList.add('visible');
+      // Only show 3D avatar elements if not in Beyond Presence mode
+      if (!isBeyondPresenceMode) {
+        avatarContainer?.classList.add('visible');
+        speechBubble?.classList.add('visible');
+        controls?.classList.add('visible');
+      } else {
+        beyondPresenceContainer?.classList.add('visible');
+      }
       recommendationsContainer?.classList.add('visible');
-      controls?.classList.add('visible');
     }
 
     function hideAvatarElements() {
+      avatarModeToggle?.classList.remove('visible');
       avatarContainer?.classList.remove('visible');
       speechBubble?.classList.remove('visible');
       recommendationsContainer?.classList.remove('visible');
       controls?.classList.remove('visible');
+      beyondPresenceContainer?.classList.remove('visible');
       // Also hide chat when leaving weather-offers tab
       chatPopup?.classList.add('hidden');
       chatPopup?.classList.remove('visible');

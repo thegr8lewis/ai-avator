@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hybrid Avatar - 3D & Beyond Presence</title>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"
+      }
+    }
+  </script>
+  <script src="./env.js"></script>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: url('./image.png') no-repeat center center fixed;
+      background-size: cover;
+    }
+
+    /* Avatar Mode Toggle Switch */
+    #avatar-mode-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 10002;
+      background: linear-gradient(135deg, rgba(30,27,75,0.9), rgba(17,24,39,0.95));
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 16px rgba(99,102,241,0.2);
+      animation: toggleFadeIn 0.6s ease-out;
+    }
+
+    @keyframes toggleFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .toggle-label {
+      color: #f1f5f9;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 60px;
+      height: 30px;
+      background: rgba(71, 85, 105, 0.5);
+      border-radius: 15px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .toggle-switch.active {
+      background: linear-gradient(135deg, #4f46e5, #0ea5e9);
+      box-shadow: 0 0 20px rgba(79, 70, 229, 0.5);
+    }
+
+    .toggle-slider {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 22px;
+      height: 22px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .toggle-switch.active .toggle-slider {
+      transform: translateX(30px);
+    }
+
+    .mode-text {
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .mode-text.active {
+      color: #60a5fa;
+    }
+
+    /* Container for both avatar types */
+    #avatar-container {
+      position: fixed;
+      bottom: 100px;
+      left: 10px;
+      width: fit-content;
+      height: fit-content;
+      z-index: 9999;
+      pointer-events: auto;
+      border-bottom: 2px solid rgba(78, 78, 80, 0.6);
+      box-shadow-bottom: 0 0 20px rgba(123, 123, 145, 0.3);
+      overflow: visible;
+      display: inline-block;
+      animation: containerFloat 6s ease-in-out infinite, containerGlow 3s ease-in-out infinite;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    @keyframes containerFloat {
+      0%, 100% {
+        transform: translateY(0px);
+      }
+      50% {
+        transform: translateY(-8px);
+      }
+    }
+
+    @keyframes containerGlow {
+      0%, 100% {
+        filter: brightness(1) drop-shadow(0 0 10px rgba(99, 102, 241, 0.3));
+      }
+      50% {
+        filter: brightness(1.05) drop-shadow(0 0 20px rgba(99, 102, 241, 0.5));
+      }
+    }
+
+    /* 3D Avatar View */
+    #threejs-avatar-view {
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    #threejs-avatar-view.hidden {
+      opacity: 0;
+      transform: scale(0.95);
+      pointer-events: none;
+      position: absolute;
+    }
+
+    /* Beyond Presence View */
+    #beyond-presence-view {
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    #beyond-presence-view.hidden {
+      opacity: 0;
+      transform: scale(0.95);
+      pointer-events: none;
+      position: absolute;
+    }
+
+    #beyond-presence-iframe {
+      width: 400px;
+      height: 600px;
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      background: rgba(17, 24, 39, 0.5);
+    }
+
+    /* Voice Activity Indicator */
+    #voice-activity {
+      position: fixed;
+      bottom: 63px;
+      left: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 16px;
+      background: linear-gradient(135deg, rgba(239,68,68,0.95), rgba(220,38,38,0.95));
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(239, 68, 68, 0.5), 0 0 30px rgba(239, 68, 68, 0.3);
+      z-index: 10001;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      animation: voicePulse 2s ease-in-out infinite;
+    }
+
+    #voice-activity:not(.hidden) {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .voice-wave {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      height: 20px;
+    }
+
+    .wave-bar {
+      width: 3px;
+      height: 6px;
+      background: white;
+      border-radius: 2px;
+      animation: waveAnimation 1.2s ease-in-out infinite;
+    }
+
+    .wave-bar:nth-child(1) { animation-delay: 0s; }
+    .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+    .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+    .wave-bar:nth-child(4) { animation-delay: 0.3s; }
+    .wave-bar:nth-child(5) { animation-delay: 0.4s; }
+
+    @keyframes waveAnimation {
+      0%, 100% {
+        height: 6px;
+        opacity: 0.6;
+      }
+      50% {
+        height: 20px;
+        opacity: 1;
+      }
+    }
+
+    @keyframes voicePulse {
+      0%, 100% {
+        box-shadow: 0 8px 32px rgba(239, 68, 68, 0.5), 0 0 30px rgba(239, 68, 68, 0.3);
+      }
+      50% {
+        box-shadow: 0 8px 40px rgba(239, 68, 68, 0.7), 0 0 50px rgba(239, 68, 68, 0.5);
+      }
+    }
+
+    .voice-text {
+      color: white;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      letter-spacing: 0.3px;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    #controls {
+      position: fixed;
+      bottom: 12px;
+      left: 12px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      background: linear-gradient(135deg, rgba(30,27,75,0.5), rgba(17,24,39,0.7));
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 16px rgba(99,102,241,0.1);
+      color: #f1f5f9;
+      padding: 10px 14px;
+      border-radius: 16px;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      font-size: 13px;
+      z-index: 10000;
+      pointer-events: auto;
+      animation: controlsFadeIn 0.6s ease-out;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    #controls:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 24px rgba(99,102,241,0.2);
+    }
+
+    @keyframes controlsFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    #controls button {
+      background: linear-gradient(135deg, #4f46e5, #0ea5e9);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 8px 16px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: 0 4px 16px rgba(79, 70, 229, 0.3);
+      transition: transform 0.15s ease, filter 0.2s ease, box-shadow 0.2s ease;
+      letter-spacing: 0.3px;
+    }
+
+    #controls button:hover { 
+      filter: brightness(1.1); 
+      box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+      transform: translateY(-1px);
+    }
+
+    #controls button:active { 
+      transform: translateY(0px); 
+      box-shadow: 0 2px 12px rgba(79, 70, 229, 0.3);
+    }
+
+    #mic-btn {
+      background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(14,165,233,0.2)) !important;
+      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      padding: 8px 14px !important;
+      font-size: 16px !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+      transition: all 0.3s ease !important;
+    }
+
+    #mic-btn:hover {
+      background: linear-gradient(135deg, rgba(99,102,241,0.3), rgba(14,165,233,0.3)) !important;
+      border-color: rgba(255, 255, 255, 0.3) !important;
+    }
+
+    #mic-btn.listening {
+      background: linear-gradient(135deg, rgba(239,68,68,0.4), rgba(220,38,38,0.4)) !important;
+      border-color: rgba(239,68,68,0.5) !important;
+      animation: micPulse 1.5s ease-in-out infinite !important;
+    }
+
+    @keyframes micPulse {
+      0%, 100% {
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3), 0 0 20px rgba(239, 68, 68, 0.2) !important;
+      }
+      50% {
+        box-shadow: 0 4px 20px rgba(239, 68, 68, 0.6), 0 0 40px rgba(239, 68, 68, 0.4) !important;
+      }
+    }
+
+    #lang-toggle {
+      background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(14,165,233,0.2)) !important;
+      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      padding: 8px 14px !important;
+      font-size: 14px !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    #lang-toggle:hover {
+      background: linear-gradient(135deg, rgba(99,102,241,0.3), rgba(14,165,233,0.3)) !important;
+      border-color: rgba(255, 255, 255, 0.3) !important;
+    }
+
+    canvas {
+      width: 220px !important;
+      height: 420px !important;
+      background: transparent;
+      display: block;
+      border-radius: 12px;
+      animation: canvasFadeIn 0.8s ease-out;
+      transition: transform 0.3s ease;
+      position: relative;
+      z-index: 10;
+    }
+
+    canvas:hover {
+      transform: scale(1.02);
+    }
+
+    @keyframes canvasFadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    #speech-bubble {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      right: 8px;
+      max-width: 350px;
+      min-width: 180px;
+      padding: 14px 16px;
+      z-index: 1;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(15,23,42,0.85), rgba(2,6,23,0.75));
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px 16px 6px 6px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45), 0 0 20px rgba(99, 102, 241, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      color: #e5e7eb;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      font-weight: 500;
+      letter-spacing: 0.2px;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+      opacity: 0;
+      transform: translateY(-10px) scale(0.95);
+      transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    #speech-bubble.active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      animation: bubblePulse 2s ease-in-out infinite;
+    }
+
+    @keyframes bubblePulse {
+      0%, 100% {
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45), 0 0 20px rgba(99, 102, 241, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      }
+      50% {
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45), 0 0 30px rgba(99, 102, 241, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+      }
+    }
+
+    #processing-indicator {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 5;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    #processing-indicator:not(.hidden) {
+      opacity: 1;
+    }
+
+    .processing-content {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 18px;
+      background: linear-gradient(135deg, rgba(99,102,241,0.95), rgba(14,165,233,0.95));
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4), 0 0 20px rgba(99, 102, 241, 0.3);
+      animation: processingPulse 2s ease-in-out infinite;
+    }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .processing-text {
+      color: white;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      letter-spacing: 0.3px;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes processingPulse {
+      0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4), 0 0 20px rgba(99, 102, 241, 0.3);
+      }
+      50% {
+        transform: scale(1.05);
+        box-shadow: 0 10px 32px rgba(99, 102, 241, 0.6), 0 0 30px rgba(99, 102, 241, 0.5);
+      }
+    }
+
+    .hidden { display: none !important; }
+
+    #chat-popup {
+      position: absolute;
+      right: -310px;
+      top: 0;
+      width: 300px;
+      height: 420px;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      pointer-events: auto;
+      background: linear-gradient(180deg, rgba(17,24,39,0.85), rgba(15,23,42,0.7));
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), 0 0 28px rgba(99,102,241,0.12), inset 0 1px 0 rgba(255,255,255,0.08);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-radius: 16px;
+      overflow: hidden;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      animation: chatSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    #chat-popup:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 40px rgba(99,102,241,0.2), inset 0 1px 0 rgba(255,255,255,0.12);
+    }
+
+    @keyframes chatSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.9) rotateX(10deg);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1) rotateX(0deg);
+      }
+    }
+
+    .chat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+      background: linear-gradient(180deg, rgba(31,41,55,0.95), rgba(17,24,39,0.7));
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .chat-header h3 {
+      margin: 0;
+      color: #f8fafc;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    #close-chat {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.16);
+      font-size: 18px;
+      cursor: pointer;
+      color: #f1f5f9;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      font-weight: 300;
+    }
+
+    #close-chat:hover { 
+      background: rgba(239,68,68,0.15);
+      border-color: rgba(239,68,68,0.3);
+      color: #fca5a5;
+      transform: scale(1.05);
+    }
+
+    #close-chat:active { transform: scale(0.95); }
+
+    .chat-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+      gap: 12px;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    #chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      border-radius: 12px;
+      padding: 4px;
+      min-height: 0;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(99,102,241,0.3) transparent;
+    }
+
+    #chat-messages::-webkit-scrollbar { width: 6px; }
+    #chat-messages::-webkit-scrollbar-track { background: transparent; }
+    #chat-messages::-webkit-scrollbar-thumb {
+      background: rgba(99,102,241,0.3);
+      border-radius: 10px;
+      transition: background 0.2s ease;
+    }
+    #chat-messages::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.5); }
+
+    .chat-input-area {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding-top: 4px;
+    }
+
+    #chat-input {
+      flex: 1;
+      padding: 12px 16px;
+      background: rgba(15,23,42,0.7);
+      color: #f8fafc;
+      border: 1.5px solid rgba(255,255,255,0.15);
+      border-radius: 14px;
+      font-size: 14px;
+      outline: none;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    #chat-input::placeholder { color: rgba(226,232,240,0.5); }
+    #chat-input:focus { 
+      border-color: rgba(99,102,241,0.6);
+      background: rgba(15,23,42,0.85);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.1), 0 4px 12px rgba(99,102,241,0.15);
+      transform: translateY(-1px);
+    }
+
+    #send-message, #chat-btn {
+      padding: 12px 18px;
+      background: linear-gradient(135deg, #4f46e5, #0ea5e9);
+      color: white;
+      border: none;
+      border-radius: 9999px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 8px 24px rgba(79, 70, 229, 0.35);
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      letter-spacing: 0.3px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #send-message::before, #chat-btn::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s ease, height 0.6s ease;
+    }
+
+    #send-message:hover::before, #chat-btn:hover::before {
+      width: 300px;
+      height: 300px;
+    }
+
+    #send-message:hover, #chat-btn:hover { 
+      filter: brightness(1.15);
+      box-shadow: 0 12px 32px rgba(79, 70, 229, 0.5), 0 0 20px rgba(79, 70, 229, 0.3);
+      transform: translateY(-3px) scale(1.05);
+    }
+
+    #send-message:active, #chat-btn:active { 
+      transform: translateY(0px) scale(0.98);
+      box-shadow: 0 4px 16px rgba(79, 70, 229, 0.3);
+      transition: all 0.1s ease;
+    }
+
+    .message {
+      margin-bottom: 12px;
+      padding: 12px 16px;
+      border-radius: 16px;
+      max-width: 85%;
+      width: fit-content;
+      line-height: 1.5;
+      font-size: 14px;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      animation: messageSlide 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+      word-wrap: break-word;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .message:hover { transform: translateX(3px); }
+
+    @keyframes messageSlide {
+      from {
+        opacity: 0;
+        transform: translateX(-20px) scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+      }
+    }
+
+    .user-message {
+      background: linear-gradient(135deg, rgba(79,70,229,0.9), rgba(14,165,233,0.9));
+      color: #fff;
+      margin-left: auto;
+      text-align: right;
+      border: 1px solid rgba(255,255,255,0.2);
+      box-shadow: 0 4px 16px rgba(79,70,229,0.25), inset 0 1px 0 rgba(255,255,255,0.2);
+      border-radius: 16px 16px 4px 16px;
+    }
+
+    .avatar-message {
+      background: rgba(15,23,42,0.65);
+      color: #f1f5f9;
+      border: 1px solid rgba(255,255,255,0.15);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-radius: 16px 16px 16px 4px;
+    }
+
+    .typing-indicator {
+      background: rgba(15,23,42,0.65);
+      color: #f1f5f9;
+      border: 1px solid rgba(255,255,255,0.15);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-radius: 16px 16px 16px 4px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .typing-indicator .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(99,102,241,0.9), rgba(14,165,233,0.9));
+      animation: dotPulse 1.4s ease-in-out infinite;
+      box-shadow: 0 0 8px rgba(99,102,241,0.5);
+    }
+
+    .typing-indicator .dot:nth-child(1) { animation-delay: 0s; }
+    .typing-indicator .dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-indicator .dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes dotPulse {
+      0%, 60%, 100% {
+        transform: translateY(0) scale(1);
+        opacity: 0.6;
+        box-shadow: 0 0 8px rgba(99,102,241,0.3);
+      }
+      30% {
+        transform: translateY(-8px) scale(1.4);
+        opacity: 1;
+        box-shadow: 0 0 16px rgba(99,102,241,0.8);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Avatar Mode Toggle -->
+  <div id="avatar-mode-toggle">
+    <span class="mode-text" id="mode-3d">3D Avatar</span>
+    <div class="toggle-switch" id="toggle-switch">
+      <div class="toggle-slider"></div>
+    </div>
+    <span class="mode-text active" id="mode-bp">Beyond Presence</span>
+  </div>
+
+  <div id="avatar-container">
+    <!-- 3D Avatar View (Your existing Three.js avatar) -->
+    <div id="threejs-avatar-view">
+      <!-- Chat Popup -->
+      <div id="chat-popup" class="hidden">
+        <div class="chat-header">
+          <h3 data-i18n="chat-header">Chat with Avatar</h3>
+          <button id="close-chat">×</button>
+        </div>
+        <div class="chat-content">
+          <div id="chat-messages"></div>
+          <div class="chat-input-area">
+            <input type="text" id="chat-input" data-i18n-placeholder="chat-placeholder" placeholder="Ask me anything..." maxlength="500">
+            <button id="send-message" data-i18n="send-button">Send</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Speech Bubble -->
+      <div id="speech-bubble"></div>
+      
+      <!-- Processing Indicator -->
+      <div id="processing-indicator" class="hidden">
+        <div class="processing-content">
+          <div class="spinner"></div>
+          <span class="processing-text">Processing...</span>
+        </div>
+      </div>
+      
+      <!-- The Three.js canvas will be appended here by main.js -->
+    </div>
+
+    <!-- Beyond Presence View (iframe) -->
+    <div id="beyond-presence-view" class="hidden">
+      <iframe 
+        id="beyond-presence-iframe"
+        src=""
+        frameborder="0" 
+        allowfullscreen 
+        allow="camera; microphone; fullscreen"
+      ></iframe>
+    </div>
+  </div>
+
+  <!-- Voice Activity Indicator -->
+  <div id="voice-activity" class="hidden">
+    <div class="voice-wave">
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+    </div>
+    <span class="voice-text">Listening...</span>
+  </div>
+
+  <div id="controls">
+    <button id="chat-btn" data-i18n="chat-button">Chat</button>
+    <button id="mic-btn" title="Voice Input">🎤</button>
+    <button id="lang-toggle" title="Switch Language">🌐 EN</button>
+  </div>
+
+  <script type="module">
+    // Toggle between 3D Avatar and Beyond Presence
+    const toggleSwitch = document.getElementById('toggle-switch');
+    const threejsView = document.getElementById('threejs-avatar-view');
+    const beyondPresenceView = document.getElementById('beyond-presence-view');
+    const mode3DText = document.getElementById('mode-3d');
+    const modeBPText = document.getElementById('mode-bp');
+    const beyondPresenceIframe = document.getElementById('beyond-presence-iframe');
+
+    // Get Beyond Presence agent ID from env.js
+    const BEYOND_PRESENCE_AGENT_ID = window.BEYOND_PRESENCE_AGENT_ID || '';
+
+    // Set iframe src if agent ID is available
+    if (BEYOND_PRESENCE_AGENT_ID) {
+      beyondPresenceIframe.src = `https://bey.chat/${BEYOND_PRESENCE_AGENT_ID}`;
+    }
+
+    let isBeyondPresenceMode = false;
+
+    toggleSwitch.addEventListener('click', () => {
+      isBeyondPresenceMode = !isBeyondPresenceMode;
+      
+      if (isBeyondPresenceMode) {
+        // Switch to Beyond Presence
+        toggleSwitch.classList.add('active');
+        threejsView.classList.add('hidden');
+        beyondPresenceView.classList.remove('hidden');
+        mode3DText.classList.remove('active');
+        modeBPText.classList.add('active');
+        
+        // Hide controls that are only for 3D avatar
+        document.getElementById('controls').style.opacity = '0.5';
+      } else {
+        // Switch to 3D Avatar
+        toggleSwitch.classList.remove('active');
+        threejsView.classList.remove('hidden');
+        beyondPresenceView.classList.add('hidden');
+        mode3DText.classList.add('active');
+        modeBPText.classList.remove('active');
+        
+        // Show controls
+        document.getElementById('controls').style.opacity = '1';
+      }
+    });
+
+    // Check if Beyond Presence agent ID is configured
+    if (!BEYOND_PRESENCE_AGENT_ID) {
+      console.warn('Beyond Presence agent ID not configured. Please set BEYOND_PRESENCE_AGENT_ID in env.js');
+      console.warn('Get your agent ID from: https://app.bey.chat/myAgents');
+    }
+  </script>
+
+  <script type="module" src="./language.js"></script>
+  <script type="module" src="./main.js"></script>
+  <script type="module" src="./chat.js"></script>
+</body>
+</html>
