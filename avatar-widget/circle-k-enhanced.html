@@ -648,7 +648,7 @@
       padding: 0;
       overflow: hidden;
       position: relative;
-      background: #f0f0f0;
+      background: transparent;
     }
     
     #avatar-container canvas {
@@ -817,8 +817,8 @@
     .avatar-section {
       width: 100%;
       padding: 15px 0;
-      background: linear-gradient(180deg, rgba(227,6,19,0.05), rgba(227,6,19,0.02));
-      border-top: 2px solid rgba(227,6,19,0.1);
+      background: transparent;
+      border-top: none;
       margin: 0;
       text-align: center;
     }
@@ -1627,13 +1627,13 @@
       <div class="header-actions">
         <button class="header-btn" onclick="window.location.href='#tab-finder'">Standorte</button>
         <button class="header-btn" onclick="window.location.href='#tab-programs'">Angebote</button>
-        <button class="header-btn active" id="avatar-visibility-toggle">
+        <button class="header-btn" id="avatar-visibility-toggle">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 6px;">
             <rect x="3" y="11" width="18" height="10" rx="2"/>
             <circle cx="12" cy="5" r="2"/>
             <path d="M12 7v4"/>
           </svg>
-          <span id="avatar-toggle-text">Avatar ausblenden</span>
+          <span id="avatar-toggle-text">Avatar anzeigen</span>
         </button>
       </div>
     </div>
@@ -2087,8 +2087,8 @@
     const avatarVisibilityToggle = document.getElementById('avatar-visibility-toggle');
     const avatarToggleText = document.getElementById('avatar-toggle-text');
 
-    // Avatar visibility state - enabled by default
-    let isAvatarEnabled = true;
+    // Avatar visibility state - disabled by default (user must click to show)
+    let isAvatarEnabled = false;
 
     // Get Beyond Presence agent ID from env.js
     const BEYOND_PRESENCE_AGENT_ID = window.BEYOND_PRESENCE_AGENT_ID || '';
@@ -2099,26 +2099,6 @@
     }
 
     let isBeyondPresenceMode = false;
-
-    // Initialize avatar and chat on page load
-    window.addEventListener('DOMContentLoaded', () => {
-      // Check if we're on the weather-offers tab (default tab)
-      const activeTab = document.querySelector('.tab-button.active');
-      if (activeTab && activeTab.dataset.tab === 'weather-offers' && isAvatarEnabled) {
-        // Set avatar toggle button to active state
-        avatarVisibilityToggle?.classList.add('active');
-        if (avatarToggleText) avatarToggleText.textContent = 'Avatar ausblenden';
-        
-        // Show avatar elements
-        showAvatarElements();
-        
-        // Auto-open chat modal
-        chatPopup?.classList.remove('hidden');
-        chatPopup?.classList.add('visible');
-        
-        console.log('✅ Chat modal opened automatically on page load');
-      }
-    });
 
     // Toggle between 3D Avatar and Beyond Presence
     toggleSwitch?.addEventListener('click', () => {
@@ -2208,6 +2188,9 @@
       // Avatar is now inside chat modal, so we just show controls
       if (!isBeyondPresenceMode) {
         controls?.classList.add('visible');
+        // Open chat modal when showing avatar elements
+        chatPopup?.classList.remove('hidden');
+        chatPopup?.classList.add('visible');
       } else {
         beyondPresenceContainer?.classList.add('visible');
       }

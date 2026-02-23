@@ -257,9 +257,9 @@ export function initAvatar({ scene, camera, url, lipSync, enableProceduralGestur
     // Step 2: Center the model at origin
     controllerModel.position.sub(center);
     
-    // Step 3: Show the entire avatar from head to toe
-    // Use 100% of the model height to fit the complete avatar in the canvas
-    const visibleHeight = size.y * 1.0; // Show 100% (entire avatar)
+    // Step 3: Show most of the avatar (slightly smaller)
+    // Use 85% of the model height for a better fit
+    const visibleHeight = size.y * 1.2; // Show 85% (slightly smaller)
     const visibleTop = size.y / 2; // Top of the model
     const visibleBottom = -size.y / 2; // Bottom of the model
     const visibleCenter = 0; // Center of the full model
