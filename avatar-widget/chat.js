@@ -55,6 +55,12 @@ class ChatManager {
     this.chatPopup?.classList.remove('hidden');
     this.chatInput?.focus();
     
+    // Hide attention indicators on first open
+    const attentionPointer = document.getElementById('attention-pointer');
+    const attentionText = document.getElementById('attention-text');
+    if (attentionPointer) attentionPointer.classList.add('hidden-indicator');
+    if (attentionText) attentionText.classList.add('hidden-indicator');
+    
     // Welcome message if no previous messages
     if (this.messages.length === 0) {
       this.addMessage('avatar', languageManager.t('welcome-message'));
@@ -64,6 +70,11 @@ class ChatManager {
   closeChat() {
     this.isOpen = false;
     this.chatPopup?.classList.add('hidden');
+    
+    // Stop any playing speech when closing
+    if (window.stopSpeech) {
+      window.stopSpeech();
+    }
   }
 
   async sendMessage(messageText = null) {

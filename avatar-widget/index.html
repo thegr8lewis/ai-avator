@@ -21,39 +21,11 @@
       background-size: cover;
     }
     #avatar-container {
-      position: fixed;
-      bottom: 100px;
-      left: 10px;
-      width: fit-content;  /* auto-fit to content size */
-      height: fit-content; /* auto-fit to content size */
-      z-index: 9999;
-      pointer-events: auto; /* allow interaction with chat */
-      border-bottom: 2px solid rgba(78, 78, 80, 0.6);
-      box-shadow-bottom: 0 0 20px rgba(123, 123, 145, 0.3);
-      overflow: visible;
-      display: inline-block;
-      /* Modern animations */
-      animation: containerFloat 6s ease-in-out infinite, containerGlow 3s ease-in-out infinite;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    
-    
-    @keyframes containerFloat {
-      0%, 100% {
-        transform: translateY(0px);
-      }
-      50% {
-        transform: translateY(-8px);
-      }
-    }
-    
-    @keyframes containerGlow {
-      0%, 100% {
-        filter: brightness(1) drop-shadow(0 0 10px rgba(99, 102, 241, 0.3));
-      }
-      50% {
-        filter: brightness(1.05) drop-shadow(0 0 20px rgba(99, 102, 241, 0.5));
-      }
+      position: relative;
+      width: 220px;
+      height: 420px;
+      pointer-events: auto;
+      display: block;
     }
     /* Voice Activity Indicator */
     #voice-activity {
@@ -258,15 +230,14 @@
     }
     #scale-label { opacity: 0.9; }
     canvas {
-      width: 220px !important;   /* Fixed avatar width */
-      height: 420px !important;  /* Fixed avatar height */
+      width: 220px !important;
+      height: 420px !important;
       background: transparent;
       display: block;
       border-radius: 12px;
       animation: canvasFadeIn 0.8s ease-out;
       transition: transform 0.3s ease;
       position: relative;
-      z-index: 10; /* above speech bubble */
     }
     
     canvas:hover {
@@ -284,56 +255,9 @@
       }
     }
     
-    /* Speech Bubble Styles - darker for readability, positioned within container */
+    /* Speech Bubble - Hidden (responses now show in chat) */
     #speech-bubble {
-      position: absolute;
-      top: 8px;
-      left: 8px;
-      right: 8px;
-      max-width: 350px;
-      min-width: 180px;
-      padding: 14px 16px;
-      z-index: 1; /* behind avatar canvas */
-      pointer-events: none;
-      /* Dark glassmorphism */
-      background: linear-gradient(180deg, rgba(15,23,42,0.85), rgba(2,6,23,0.75));
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 16px 16px 6px 6px;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45),
-                  0 0 20px rgba(99, 102, 241, 0.12),
-                  inset 0 1px 0 rgba(255, 255, 255, 0.08);
-      color: #e5e7eb;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      font-size: 14px;
-      line-height: 1.5;
-      font-weight: 500;
-      letter-spacing: 0.2px;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
-      opacity: 0;
-      transform: translateY(-10px) scale(0.95);
-      transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
-                  transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    #speech-bubble.active {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-      animation: bubblePulse 2s ease-in-out infinite;
-    }
-    
-    @keyframes bubblePulse {
-      0%, 100% {
-        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45),
-                    0 0 20px rgba(99, 102, 241, 0.12),
-                    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-      }
-      50% {
-        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45),
-                    0 0 30px rgba(99, 102, 241, 0.25),
-                    inset 0 1px 0 rgba(255, 255, 255, 0.12);
-      }
+      display: none !important;
     }
     
     /* Processing Indicator Styles */
@@ -404,23 +328,21 @@
       }
     }
     
-    #speech-bubble::before { display: none; }
     
     /* Chat Popup Styles */
     .hidden { display: none !important; }
     
     #chat-popup {
-      position: absolute; /* positioned relative to container */
-      right: -310px; /* position to the right of container with 10px gap */
-      top: 0;
-      width: 300px; /* fixed width */
-      height: 420px; /* fixed height */
+      position: fixed;
+      bottom: 100px;
+      left: 10px;
+      width: 400px;
+      height: 600px;
       z-index: 10000;
       display: flex;
       flex-direction: column;
       pointer-events: auto;
-      /* Darker glassmorphism */
-      background: linear-gradient(180deg, rgba(17,24,39,0.85), rgba(15,23,42,0.7));
+      background: linear-gradient(180deg, rgba(17,24,39,0.95), rgba(15,23,42,0.9));
       border: 1px solid rgba(255, 255, 255, 0.10);
       box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), 
                   0 0 28px rgba(99,102,241,0.12),
@@ -450,6 +372,73 @@
         opacity: 1;
         transform: translateY(0) scale(1) rotateX(0deg);
       }
+    }
+    
+    /* Attention-grabbing pointer indicator */
+    .attention-pointer {
+      position: fixed;
+      bottom: 60px;
+      left: 120px;
+      z-index: 10002;
+      pointer-events: none;
+      animation: pointBounce 2s ease-in-out infinite, pointGlow 1.5s ease-in-out infinite;
+    }
+    
+    .attention-pointer::before {
+      content: '👆';
+      font-size: 32px;
+      filter: drop-shadow(0 4px 8px rgba(99, 102, 241, 0.6));
+    }
+    
+    .attention-text {
+      position: fixed;
+      bottom: 100px;
+      left: 90px;
+      background: linear-gradient(135deg, rgba(99,102,241,0.95), rgba(14,165,233,0.95));
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.5);
+      z-index: 10002;
+      pointer-events: none;
+      animation: textPulse 2s ease-in-out infinite;
+      white-space: nowrap;
+    }
+    
+    @keyframes pointBounce {
+      0%, 100% {
+        transform: translateY(0px) rotate(-15deg);
+      }
+      50% {
+        transform: translateY(-15px) rotate(-15deg);
+      }
+    }
+    
+    @keyframes pointGlow {
+      0%, 100% {
+        filter: drop-shadow(0 4px 8px rgba(99, 102, 241, 0.6));
+      }
+      50% {
+        filter: drop-shadow(0 6px 16px rgba(99, 102, 241, 1));
+      }
+    }
+    
+    @keyframes textPulse {
+      0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 8px 24px rgba(99, 102, 241, 0.5);
+      }
+      50% {
+        transform: scale(1.05);
+        box-shadow: 0 12px 32px rgba(99, 102, 241, 0.8);
+      }
+    }
+    
+    .hidden-indicator {
+      display: none !important;
     }
     
     .chat-header {
@@ -504,6 +493,18 @@
       gap: 12px;
       overflow: hidden;
       min-height: 0;
+    }
+    
+    .avatar-section {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 12px;
+      background: linear-gradient(180deg, rgba(31,41,55,0.5), rgba(17,24,39,0.3));
+      border-top: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      margin-top: 8px;
     }
     
     #chat-messages {
@@ -707,34 +708,36 @@
   </style>
 </head>
 <body>
-  <div id="avatar-container">
-    <!-- Chat Popup (now inside the container, above the avatar) -->
-    <div id="chat-popup" class="hidden">
-      <div class="chat-header">
-        <h3 data-i18n="chat-header">Chat with Avatar</h3>
-        <button id="close-chat">×</button>
+  <!-- Chat Popup with Avatar inside at bottom -->
+  <div id="chat-popup" class="hidden">
+    <div class="chat-header">
+      <h3 data-i18n="chat-header">Chat with Avatar</h3>
+      <button id="close-chat">×</button>
+    </div>
+    <div class="chat-content">
+      <div id="chat-messages"></div>
+      <div class="chat-input-area">
+        <input type="text" id="chat-input" data-i18n-placeholder="chat-placeholder" placeholder="Ask me anything..." maxlength="500">
+        <button id="send-message" data-i18n="send-button">Send</button>
       </div>
-      <div class="chat-content">
-        <div id="chat-messages"></div>
-        <div class="chat-input-area">
-          <input type="text" id="chat-input" data-i18n-placeholder="chat-placeholder" placeholder="Ask me anything..." maxlength="500">
-          <button id="send-message" data-i18n="send-button">Send</button>
+      <!-- Avatar Section at Bottom -->
+      <div class="avatar-section">
+        <div id="avatar-container">
+          <!-- The Three.js canvas will be appended here by main.js -->
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Speech Bubble (now inside the container) -->
-    <div id="speech-bubble"></div>
-    
-    <!-- Processing Indicator -->
-    <div id="processing-indicator" class="hidden">
-      <div class="processing-content">
-        <div class="spinner"></div>
-        <span class="processing-text">Processing...</span>
-      </div>
+  <!-- Speech Bubble (hidden) -->
+  <div id="speech-bubble"></div>
+  
+  <!-- Processing Indicator -->
+  <div id="processing-indicator" class="hidden">
+    <div class="processing-content">
+      <div class="spinner"></div>
+      <span class="processing-text">Processing...</span>
     </div>
-    
-    <!-- The Three.js canvas will be appended here by main.js -->
   </div>
 
   <!-- Voice Activity Indicator -->
@@ -748,6 +751,10 @@
     </div>
     <span class="voice-text">Listening...</span>
   </div>
+
+  <!-- Attention Indicator for Chat Button -->
+  <div class="attention-pointer" id="attention-pointer"></div>
+  <div class="attention-text" id="attention-text">New Feature! Click to Chat</div>
 
   <div id="controls">
     <button id="chat-btn" data-i18n="chat-button">Chat</button>

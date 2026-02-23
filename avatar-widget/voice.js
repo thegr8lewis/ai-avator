@@ -41,12 +41,29 @@ function sanitizeText(text) {
     .replace(/\#/g, '')    // Remove h1 #
     .trim();
   
-  // Fix temperature pronunciation: convert "-5°C" to "minus 5°C"
+  // Fix temperature pronunciation: convert "-5°C" to "minus 5 degrees Celsius"
   // Match patterns like: -5, -10, -15 followed by optional space and degree symbol
+  cleaned = cleaned.replace(/(-\d+)\s*°C/g, (match, tempWithMinus) => {
+    const temp = parseInt(tempWithMinus);
+    const absTemp = Math.abs(temp);
+    return `minus ${absTemp} degrees Celsius`;
+  });
+  
+  // Handle positive temperatures with °C
+  cleaned = cleaned.replace(/(\d+)\s*°C/g, (match, temp) => {
+    return `${temp} degrees Celsius`;
+  });
+  
+  // Handle negative temperatures with just ° (no C)
   cleaned = cleaned.replace(/(-\d+)\s*°/g, (match, tempWithMinus) => {
     const temp = parseInt(tempWithMinus);
     const absTemp = Math.abs(temp);
-    return `minus ${absTemp}°`;
+    return `minus ${absTemp} degrees`;
+  });
+  
+  // Handle positive temperatures with just ° (no C)
+  cleaned = cleaned.replace(/(\d+)\s*°/g, (match, temp) => {
+    return `${temp} degrees`;
   });
   
   // Also handle temperatures without degree symbol: "-5 Grad" or "-5 degrees"

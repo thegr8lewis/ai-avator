@@ -10,32 +10,38 @@ import './recommendations.js';
 const container = document.getElementById('avatar-container');
 
 // Fixed avatar display dimensions (can be changed via setAvatarDisplaySize)
-let AVATAR_WIDTH = 220;
-let AVATAR_HEIGHT = 420;
+let AVATAR_WIDTH = 200;
+let AVATAR_HEIGHT = 160;
 
 // Scene
 const scene = new THREE.Scene();
 
-// Camera
+// Camera - position will be calculated dynamically in avatar.js based on model bounds
 const camera = new THREE.PerspectiveCamera(
-  50,
+  45,
   AVATAR_WIDTH / AVATAR_HEIGHT,
   0.1,
   100
 );
-// Start a bit back and up to frame the full body
-camera.position.set(0, 0.3, 4.5);
+// Initial position (will be overridden by avatar.js after model loads)
+camera.position.set(0, 0, 2);
+camera.lookAt(0, 0, 0);
 
-// Renderer
-const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+// Renderer - CSS handles all styling via object-fit
+const renderer = new THREE.WebGLRenderer({ 
+  alpha: true, 
+  antialias: true,
+  powerPreference: 'high-performance'
+});
+renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(AVATAR_WIDTH, AVATAR_HEIGHT);
 renderer.setClearColor(0x000000, 0);
-// Subtle realism via tone mapping
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.0;
+
 container.appendChild(renderer.domElement);
+console.log('✅ Renderer initialized:', AVATAR_WIDTH + 'x' + AVATAR_HEIGHT);
 
 // Lights
 const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 0.8);
@@ -55,7 +61,7 @@ let avatarController = null;
 let autoSequenceStarted = false; // ensure we only auto-speak sequence once
 let speaking = false;
 let currentUtterance = null;
-let currentScale = 1.0; // UI-controlled scale (simple approach)
+// Scale is now handled automatically in avatar.js using Box3 bounding box
 let currentLang = 'en';
 try {
   languageManager.subscribe((lang) => { currentLang = lang; });
@@ -108,9 +114,7 @@ const lipSync = {
   try {
     avatarController = initAvatar({ scene, camera, url: AVATAR_URL, lipSync, enableProceduralGestures: false });
     await avatarController.load();
-    if (avatarController.model) {
-      avatarController.model.scale.set(currentScale, currentScale, currentScale);
-    }
+    // Scale is now handled automatically in avatar.js using Box3
   } catch (e) {
     console.error('Failed to initialize avatar:', e);
   }
@@ -195,19 +199,19 @@ function hideSpeechBubble() {
   }, 500);
 }
 
-// Wire voice hooks to lip sync and speech bubble
+// Wire voice hooks to lip sync (speech bubble disabled - responses show in chat)
 setSpeechHooks({
   onStart: (text) => { 
     speaking = true; 
     lipSync.start(text);
-    showSpeechBubble(text);
+    // Speech bubble disabled - responses now show in chat messages
   },
   onBoundary: () => lipSync.peak(),
   onEnd: () => { 
     speaking = false; 
     lipSync.stop(); 
     currentUtterance = null;
-    hideSpeechBubble();
+    // Speech bubble disabled
   }
 });
 
@@ -235,6 +239,13 @@ window.setAvatarDisplaySize = (width, height) => {
   renderer.setSize(AVATAR_WIDTH, AVATAR_HEIGHT);
   
   console.log(`✅ Avatar display size updated to ${width}x${height}px`);
+};
+
+// Stop speech function
+window.stopSpeech = () => {
+  speaking = false;
+  lipSync.stop();
+  currentUtterance = null;
 };
 
 // Expose helpers for quick testing from console
@@ -284,27 +295,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const btn = document.getElementById('speak-weather');
   if (btn) btn.addEventListener('click', () => window.sayWeather());
 
-  const inc = document.getElementById('increase');
-  const dec = document.getElementById('decrease');
-  const label = document.getElementById('scale-label');
-
-  function refreshLabel() {
-    if (label) label.textContent = `Scale: ${currentScale.toFixed(2)}`;
-  }
-
-  window.setAvatarScale = (s) => {
-    currentScale = Math.max(0.6, Math.min(5.0, s));
-    if (avatarController && avatarController.model) {
-      avatarController.model.scale.set(currentScale, currentScale, currentScale);
-    }
-    refreshLabel();
-  };
-
-  if (inc) inc.addEventListener('click', () => window.setAvatarScale(currentScale + 0.1));
-  if (dec) dec.addEventListener('click', () => window.setAvatarScale(currentScale - 0.1));
-
-  // Initialize label
-  refreshLabel();
+  // Scale controls removed - now handled automatically via Box3 in avatar.js
   
   // Mic button for voice input
   const micBtn = document.getElementById('mic-btn');
@@ -328,6 +319,11 @@ window.addEventListener('DOMContentLoaded', () => {
           micBtn.classList.remove('listening');
           if (voiceActivity) voiceActivity.classList.add('hidden');
           console.log('📝 User said:', transcript);
+          
+          // Open chat modal if not already open
+          if (window.chatManager && !window.chatManager.isOpen) {
+            window.chatManager.openChat();
+          }
           
           // Show processing indicator
           if (processingIndicator) {

@@ -242,14 +242,52 @@ export function initAvatar({ scene, camera, url, lipSync, enableProceduralGestur
     blinkTargets = loaded.blinkTargets;
     ({ headBone, neckBone, chestBone, spineBone, jawBone, leftEyeBone, rightEyeBone, leftUpperArm, rightUpperArm, leftLowerArm, rightLowerArm, leftHand, rightHand } = loaded.bones);
 
-    controllerModel.position.set(0, 0, 0);
     scene.add(controllerModel);
-    controllerModel.position.set(0, -1.5, 0);
-    camera.position.set(0, 0.3, 4.5);
-    camera.lookAt(0, -0.2, 0);
+    
+    // Step 1: Calculate bounding box of the entire model
+    const box = new THREE.Box3().setFromObject(controllerModel);
+    const size = new THREE.Vector3();
+    const center = new THREE.Vector3();
+    box.getSize(size);
+    box.getCenter(center);
+    
+    console.log('📦 Original model size:', size.toArray());
+    console.log('📦 Original model center:', center.toArray());
+    
+    // Step 2: Center the model at origin
+    controllerModel.position.sub(center);
+    
+    // Step 3: Show the entire avatar from head to toe
+    // Use 100% of the model height to fit the complete avatar in the canvas
+    const visibleHeight = size.y * 1.0; // Show 100% (entire avatar)
+    const visibleTop = size.y / 2; // Top of the model
+    const visibleBottom = -size.y / 2; // Bottom of the model
+    const visibleCenter = 0; // Center of the full model
+    
+    console.log('👁️ Visible portion - Height:', visibleHeight.toFixed(2), 'Center Y:', visibleCenter.toFixed(2));
+    
+    // Step 4: Calculate camera distance to fit this visible height exactly in the viewport
+    // Using perspective camera formula: height = 2 * distance * tan(fov/2)
+    // Rearranged: distance = height / (2 * tan(fov/2))
+    const fov = camera.fov * (Math.PI / 180); // Convert to radians
+    const aspect = camera.aspect;
+    
+    // We want the visible height to fill the canvas height
+    // Add a small margin factor (0.95) to ensure it fills completely
+    const fitDistance = (visibleHeight / 2) / Math.tan(fov / 2) / 0.95;
+    
+    console.log('📷 Calculated camera distance:', fitDistance.toFixed(2));
+    
+    // Step 5: Position camera to look at the center of the visible portion
+    camera.position.set(0, visibleCenter, fitDistance);
+    camera.lookAt(0, visibleCenter, 0);
     camera.near = 0.1;
     camera.far = 100;
     camera.updateProjectionMatrix();
+    
+    console.log('✅ Camera positioned at:', camera.position.toArray());
+    console.log('✅ Camera looking at: [0,', visibleCenter.toFixed(2), ', 0]');
+    
     setMouth(0); setBlink(0, 0); baseY = controllerModel.position.y;
     if (gestureUrl) tryLoadGestureAnimation(gestureUrl);
   }

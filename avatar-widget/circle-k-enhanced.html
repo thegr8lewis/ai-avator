@@ -640,71 +640,29 @@
       line-height: 1.6;
     }
 
-    /* Avatar Container - Only visible on weather-offers tab */
+    /* Avatar Container - Treat canvas like an image */
     #avatar-container {
-      position: fixed;
-      bottom: 120px;
-      left: 40px;
-      width: 220px;
-      height: 420px;
-      z-index: 9999;
-      pointer-events: auto;
-      border-radius: 20px;
-      overflow: visible;
-      background: transparent;
-      animation: avatarFloat 6s ease-in-out infinite;
-      display: none;
+      width: 200px;
+      height: 160px;
+      margin: 0 auto;
+      padding: 0;
+      overflow: hidden;
+      position: relative;
+      background: #f0f0f0;
     }
-
-    #avatar-container.visible {
-      display: block;
-    }
-
-    @keyframes avatarFloat {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-10px); }
-    }
-
-    /* Speech Bubble */
-    #speech-bubble {
-      position: fixed;
-      bottom: 560px;
-      left: 40px;
-      max-width: 420px;
-      padding: 24px 28px;
-      background: linear-gradient(135deg, var(--circle-k-red) 0%, var(--circle-k-red-dark) 100%);
-      color: var(--circle-k-white);
-      border-radius: 20px;
-      box-shadow: var(--shadow-xl);
-      font-size: 15px;
-      line-height: 1.7;
-      opacity: 0;
-      transform: translateY(20px) scale(0.95);
-      transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      z-index: 10000;
-      pointer-events: none;
-      display: none;
-    }
-
-    #speech-bubble.visible {
-      display: block;
-    }
-
-    #speech-bubble.active {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-
-    #speech-bubble::before {
-      content: '';
+    
+    #avatar-container canvas {
       position: absolute;
-      bottom: -12px;
-      left: 50px;
-      width: 0;
-      height: 0;
-      border-left: 14px solid transparent;
-      border-right: 14px solid transparent;
-      border-top: 14px solid var(--circle-k-red-dark);
+      top: 0;
+      left: 0;
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover;
+    }
+
+    /* Speech Bubble - Hidden (responses now show in chat) */
+    #speech-bubble {
+      display: none !important;
     }
 
     /* Recommendations Section - inline styles handled by recommendations-enhanced.js */
@@ -829,13 +787,14 @@
       font-size: 16px;
     }
 
-    /* Enhanced Chat Interface */
+    /* Enhanced Chat Interface - Now contains avatar at bottom */
     #chat-popup {
       position: fixed;
       bottom: 40px;
-      right: 40px;
-      width: 420px;
-      height: 640px;
+      left: 40px;
+      width: 450px;
+      height: auto;
+      max-height: 90vh;
       background: var(--circle-k-white);
       border-radius: 24px;
       box-shadow: var(--shadow-xl);
@@ -855,6 +814,15 @@
       display: none;
     }
 
+    .avatar-section {
+      width: 100%;
+      padding: 15px 0;
+      background: linear-gradient(180deg, rgba(227,6,19,0.05), rgba(227,6,19,0.02));
+      border-top: 2px solid rgba(227,6,19,0.1);
+      margin: 0;
+      text-align: center;
+    }
+
     .chat-header {
       background: linear-gradient(135deg, var(--circle-k-red) 0%, var(--circle-k-red-dark) 100%);
       color: var(--circle-k-white);
@@ -863,6 +831,12 @@
       justify-content: space-between;
       align-items: center;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .chat-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
 
     .chat-header-info {
@@ -913,6 +887,111 @@
       50% { opacity: 0.5; }
     }
 
+    /* Attention-grabbing pointer indicator - positioned to the right of Avatar anzeigen button */
+    .attention-pointer {
+      position: fixed;
+      top: 18px;
+      right: 30px;
+      z-index: 10002;
+      pointer-events: none;
+      animation: pointBounce 2s ease-in-out infinite, pointGlow 1.5s ease-in-out infinite;
+    }
+
+    .attention-pointer::before {
+      content: '�';
+      font-size: 28px;
+      filter: drop-shadow(0 4px 8px rgba(227, 6, 19, 0.6));
+    }
+
+    .attention-text {
+      position: fixed;
+      top: 15px;
+      right: 70px;
+      background: white;
+      color: var(--circle-k-red);
+      padding: 10px 20px;
+      border-radius: 25px;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: 'Inter', sans-serif;
+      box-shadow: 0 8px 32px rgba(227, 6, 19, 0.4), 0 0 0 3px rgba(227, 6, 19, 0.2);
+      z-index: 10002;
+      pointer-events: none;
+      animation: textPulse 2s ease-in-out infinite, textSlide 3s ease-in-out infinite;
+      white-space: nowrap;
+      border: 2px solid var(--circle-k-red);
+    }
+
+    @keyframes pointBounce {
+      0%, 100% {
+        transform: translateX(0px);
+      }
+      50% {
+        transform: translateX(-10px);
+      }
+    }
+
+    @keyframes pointGlow {
+      0%, 100% {
+        filter: drop-shadow(0 4px 8px rgba(227, 6, 19, 0.6));
+      }
+      50% {
+        filter: drop-shadow(0 6px 16px rgba(227, 6, 19, 1));
+      }
+    }
+
+    @keyframes textPulse {
+      0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 8px 32px rgba(227, 6, 19, 0.4), 0 0 0 3px rgba(227, 6, 19, 0.2);
+      }
+      50% {
+        transform: scale(1.05);
+        box-shadow: 0 12px 40px rgba(227, 6, 19, 0.6), 0 0 0 4px rgba(227, 6, 19, 0.4);
+      }
+    }
+
+    @keyframes textSlide {
+      0%, 100% {
+        transform: translateX(0px) scale(1);
+        box-shadow: 0 8px 24px rgba(227, 6, 19, 0.5);
+      }
+      50% {
+        transform: translateX(-5px) scale(1.05);
+        box-shadow: 0 12px 32px rgba(227, 6, 19, 0.8);
+      }
+    }
+
+    .hidden-indicator {
+      display: none !important;
+    }
+
+    .header-icon-btn {
+      background: rgba(255,255,255,0.15);
+      border: none;
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      padding: 8px;
+    }
+    
+    .header-icon-btn svg {
+      width: 20px;
+      height: 20px;
+      stroke: white;
+    }
+    
+    .header-icon-btn:hover {
+      background: rgba(255,255,255,0.25);
+      transform: translateY(-2px);
+    }
+
     #close-chat {
       background: rgba(255,255,255,0.15);
       border: none;
@@ -935,8 +1014,16 @@
       transform: rotate(90deg);
     }
 
+    .chat-content {
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+      gap: 0;
+      overflow: hidden;
+      max-height: calc(90vh - 100px);
+    }
+
     #chat-messages {
-      flex: 1;
       overflow-y: auto;
       padding: 24px;
       background: #f8f9fa;
@@ -1016,11 +1103,12 @@
     }
 
     .chat-input-container {
-      padding: 24px;
+      padding: 20px 24px;
       background: var(--circle-k-white);
-      border-top: 2px solid #f0f0f0;
+      border-top: 1px solid #e5e7eb;
       display: flex;
       gap: 12px;
+      flex-shrink: 0;
     }
 
     #chat-input {
@@ -1193,14 +1281,9 @@
     @media (max-width: 1200px) {
       /* Recommendations container styles handled by recommendations-enhanced.js */
 
-      #avatar-container {
-        left: 20px;
-        bottom: 100px;
-      }
-
-      #speech-bubble {
-        left: 20px;
-        max-width: 360px;
+      #chat-popup {
+        width: 400px;
+        height: 700px;
       }
     }
 
@@ -1247,15 +1330,14 @@
 
       /* Recommendations container styles handled by recommendations-enhanced.js */
 
-      #avatar-container {
-        width: 180px;
-        height: 360px;
-        bottom: 80px;
+      #chat-popup {
+        width: 380px;
+        height: 650px;
       }
 
-      #speech-bubble {
-        max-width: 300px;
-        bottom: 460px;
+      #avatar-container {
+        width: auto;
+        height: auto;
       }
     }
 
@@ -1340,27 +1422,23 @@
         gap: 24px;
       }
 
-      #avatar-container {
-        width: 160px;
-        height: 320px;
-        left: 10px;
-        bottom: 70px;
-      }
-
-      #speech-bubble {
-        left: 10px;
-        max-width: calc(100vw - 40px);
-        bottom: 410px;
-        font-size: 14px;
-        padding: 18px 20px;
-      }
-
       #chat-popup {
         width: 100%;
-        height: 100vh;
+        height: 100%;
         bottom: 0;
+        left: 0;
         right: 0;
         border-radius: 0;
+      }
+
+      #avatar-container {
+        width: auto;
+        height: auto;
+      }
+
+      .attention-pointer,
+      .attention-text {
+        display: none !important;
       }
 
       .controls {
@@ -1549,13 +1627,13 @@
       <div class="header-actions">
         <button class="header-btn" onclick="window.location.href='#tab-finder'">Standorte</button>
         <button class="header-btn" onclick="window.location.href='#tab-programs'">Angebote</button>
-        <button class="header-btn" id="avatar-visibility-toggle">
+        <button class="header-btn active" id="avatar-visibility-toggle">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 6px;">
             <rect x="3" y="11" width="18" height="10" rx="2"/>
             <circle cx="12" cy="5" r="2"/>
             <path d="M12 7v4"/>
           </svg>
-          <span id="avatar-toggle-text">Avatar anzeigen</span>
+          <span id="avatar-toggle-text">Avatar ausblenden</span>
         </button>
       </div>
     </div>
@@ -1868,10 +1946,7 @@
     <span class="mode-text" id="mode-bp">Beyond Presence</span>
   </div>
 
-  <!-- Avatar Container (only visible on weather-offers tab) -->
-  <div id="avatar-container"></div>
-
-  <!-- Speech Bubble (only visible on weather-offers tab) -->
+  <!-- Speech Bubble (hidden) -->
   <div id="speech-bubble"></div>
 
   <!-- Beyond Presence Container (only visible on weather-offers tab when toggled) -->
@@ -1885,7 +1960,7 @@
     ></iframe>
   </div>
 
-  <!-- Enhanced Chat Popup -->
+  <!-- Enhanced Chat Popup with Avatar inside at bottom -->
   <div id="chat-popup" class="hidden">
     <div class="chat-header">
       <div class="chat-header-info">
@@ -1906,36 +1981,44 @@
           </div>
         </div>
       </div>
-      <button id="close-chat">×</button>
+      <div class="chat-header-actions">
+        <button id="lang-toggle" class="header-icon-btn" title="Sprache wechseln">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+          </svg>
+        </button>
+        <button id="close-chat">×</button>
+      </div>
     </div>
-    <div id="chat-messages"></div>
-    <div class="chat-input-container">
-      <input 
-        type="text" 
-        id="chat-input" 
-        placeholder="Frag mich etwas über das Wetter..." 
-        data-i18n-placeholder="chat-placeholder"
-      />
-      <button id="send-message" data-i18n="send-button">Senden</button>
+    <div class="chat-content">
+      <div id="chat-messages"></div>
+      <!-- Avatar Section - naturally positioned between messages and input -->
+      <div class="avatar-section">
+        <div id="avatar-container">
+          <!-- The Three.js canvas will be appended here by main.js -->
+        </div>
+      </div>
+      <div class="chat-input-container">
+        <input 
+          type="text" 
+          id="chat-input" 
+          placeholder="Frag mich etwas über das Wetter..." 
+          data-i18n-placeholder="chat-placeholder"
+        />
+        <button id="send-message" data-i18n="send-button">Senden</button>
+      </div>
     </div>
   </div>
 
+  <!-- Attention Indicator for Chat Button -->
+  <div class="attention-pointer" id="attention-pointer"></div>
+  <div class="attention-text" id="attention-text">Neue Funktion! Klick zum Chatten</div>
+
   <!-- Control Buttons (only visible on weather-offers tab) -->
   <div class="controls">
-    <button id="chat-btn" class="control-btn" title="Chat öffnen">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-      </svg>
-      <span class="tooltip">Chat mit Karsten</span>
-    </button>
-    <button id="lang-toggle" class="control-btn" title="Sprache wechseln">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10"></circle>
-        <line x1="2" y1="12" x2="22" y2="12"></line>
-        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-      </svg>
-      <span class="tooltip">Sprache ändern</span>
-    </button>
+    <!-- Chat button removed - chat opens automatically when avatar is enabled -->
   </div>
 
   <!-- Footer -->
@@ -2004,8 +2087,8 @@
     const avatarVisibilityToggle = document.getElementById('avatar-visibility-toggle');
     const avatarToggleText = document.getElementById('avatar-toggle-text');
 
-    // Avatar visibility state
-    let isAvatarEnabled = false;
+    // Avatar visibility state - enabled by default
+    let isAvatarEnabled = true;
 
     // Get Beyond Presence agent ID from env.js
     const BEYOND_PRESENCE_AGENT_ID = window.BEYOND_PRESENCE_AGENT_ID || '';
@@ -2017,6 +2100,26 @@
 
     let isBeyondPresenceMode = false;
 
+    // Initialize avatar and chat on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      // Check if we're on the weather-offers tab (default tab)
+      const activeTab = document.querySelector('.tab-button.active');
+      if (activeTab && activeTab.dataset.tab === 'weather-offers' && isAvatarEnabled) {
+        // Set avatar toggle button to active state
+        avatarVisibilityToggle?.classList.add('active');
+        if (avatarToggleText) avatarToggleText.textContent = 'Avatar ausblenden';
+        
+        // Show avatar elements
+        showAvatarElements();
+        
+        // Auto-open chat modal
+        chatPopup?.classList.remove('hidden');
+        chatPopup?.classList.add('visible');
+        
+        console.log('✅ Chat modal opened automatically on page load');
+      }
+    });
+
     // Toggle between 3D Avatar and Beyond Presence
     toggleSwitch?.addEventListener('click', () => {
       isBeyondPresenceMode = !isBeyondPresenceMode;
@@ -2025,20 +2128,14 @@
         // Switch to Beyond Presence
         toggleSwitch.classList.add('active');
         
-        // Stop 3D avatar speech and hide elements
+        // Stop 3D avatar speech
         if (window.speechSynthesis) {
           window.speechSynthesis.cancel();
         }
-        
-        // Hide speech bubble immediately
-        const bubble = document.getElementById('speech-bubble');
-        if (bubble) {
-          bubble.classList.remove('active');
-          bubble.textContent = '';
+        if (window.stopSpeech) {
+          window.stopSpeech();
         }
         
-        avatarContainer?.classList.remove('visible');
-        speechBubble?.classList.remove('visible');
         controls?.classList.remove('visible');
         chatPopup?.classList.add('hidden');
         chatPopup?.classList.remove('visible');
@@ -2052,10 +2149,8 @@
           alert('Please configure your Beyond Presence agent ID in env.js\n\nGet your agent ID from: https://app.bey.chat/myAgents');
         }
       } else {
-        // Switch to 3D Avatar
+        // Switch to 3D Avatar (avatar is inside chat modal)
         toggleSwitch.classList.remove('active');
-        avatarContainer?.classList.add('visible');
-        speechBubble?.classList.add('visible');
         controls?.classList.add('visible');
         beyondPresenceContainer?.classList.remove('visible');
         mode3DText?.classList.add('active');
@@ -2084,6 +2179,16 @@
         const activeTab = document.querySelector('.tab-button.active');
         if (activeTab && activeTab.dataset.tab === 'weather-offers') {
           showAvatarElements();
+          
+          // Auto-open chat modal when avatar is enabled
+          chatPopup?.classList.remove('hidden');
+          chatPopup?.classList.add('visible');
+          
+          // Hide attention indicators when chat opens
+          const attentionPointer = document.getElementById('attention-pointer');
+          const attentionText = document.getElementById('attention-text');
+          if (attentionPointer) attentionPointer.classList.add('hidden-indicator');
+          if (attentionText) attentionText.classList.add('hidden-indicator');
         }
       } else {
         // Disable avatar
@@ -2100,10 +2205,8 @@
       if (!isAvatarEnabled) return;
       
       avatarModeToggle?.classList.add('visible');
-      // Only show 3D avatar elements if not in Beyond Presence mode
+      // Avatar is now inside chat modal, so we just show controls
       if (!isBeyondPresenceMode) {
-        avatarContainer?.classList.add('visible');
-        speechBubble?.classList.add('visible');
         controls?.classList.add('visible');
       } else {
         beyondPresenceContainer?.classList.add('visible');
@@ -2113,8 +2216,6 @@
 
     function hideAvatarElements() {
       avatarModeToggle?.classList.remove('visible');
-      avatarContainer?.classList.remove('visible');
-      speechBubble?.classList.remove('visible');
       recommendationsContainer?.classList.remove('visible');
       controls?.classList.remove('visible');
       beyondPresenceContainer?.classList.remove('visible');
