@@ -1846,6 +1846,7 @@
     </div>
     
     <!-- Recommendations will be inserted here and default content will be hidden -->
+    <div id="recommendations-section" class="hidden"></div>
   </div>
 
   <!-- Tab Content: Services -->
@@ -2068,8 +2069,12 @@
 
   <!-- Load modules -->
   <script type="module" src="./main.js"></script>
+  <script>
+    window.CHAT_BRAND = 'circlek';
+  </script>
   <script type="module" src="./chat.js"></script>
-  <script type="module" src="recommendations-redesign.js"></script>
+  <script type="module" src="./recommendations-redesign.js"></script>
+  <script type="module" src="./recommendations-multibrand.js"></script>
 
   <script>
     // Tab switching logic with avatar visibility control

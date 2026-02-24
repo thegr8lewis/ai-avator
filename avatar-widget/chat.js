@@ -1,11 +1,12 @@
 // Chat functionality with Gemini AI integration
 import languageManager from './language.js';
-import { getGeminiResponse as geminiGetResponse } from './gemini.js';
 
 class ChatManager {
   constructor() {
     this.isOpen = false;
     this.messages = [];
+    this.brand = this.resolveBrand();
+    this.geminiModulePromise = this.loadGeminiModule();
     this.initializeElements();
     this.bindEvents();
     
@@ -22,6 +23,24 @@ class ChatManager {
     this.chatInput = document.getElementById('chat-input');
     this.sendBtn = document.getElementById('send-message');
     this.messagesContainer = document.getElementById('chat-messages');
+  }
+
+  resolveBrand() {
+    if (window.CHAT_BRAND) return String(window.CHAT_BRAND).toLowerCase();
+    const bodyBrand = document.body?.dataset?.brand;
+    return bodyBrand ? String(bodyBrand).toLowerCase() : 'obi';
+  }
+
+  async loadGeminiModule() {
+    try {
+      if (this.brand === 'circlek') return await import('./gemini-circlek.js');
+      if (this.brand === 'kik') return await import('./gemini-kik.js');
+      return await import('./gemini-obi.js');
+    } catch (err) {
+      console.error('Failed to load Gemini module for brand:', this.brand, err);
+      // Fallback to OBI module
+      return await import('./gemini-obi.js');
+    }
   }
 
   bindEvents() {
@@ -53,6 +72,7 @@ class ChatManager {
   openChat() {
     this.isOpen = true;
     this.chatPopup?.classList.remove('hidden');
+    this.chatPopup?.classList.add('visible');
     this.chatInput?.focus();
     
     // Hide attention indicators on first open
@@ -63,13 +83,31 @@ class ChatManager {
     
     // Welcome message if no previous messages
     if (this.messages.length === 0) {
-      this.addMessage('avatar', languageManager.t('welcome-message'));
+      const welcomeMap = {
+        circlek: {
+          de: 'Ich bin Karsten von Circle K. Wie kann ich dir helfen?',
+          en: 'I am Karsten from Circle K. How can I help you today?'
+        },
+        kik: {
+          de: 'Ich bin dein KiK Assistent. Was kann ich für dich tun?',
+          en: 'I am your KiK assistant. How can I help you?'
+        },
+        obi: {
+          de: 'Ich bin der OBI Assistent. Wobei kann ich unterstützen?',
+          en: 'I am the OBI assistant. How can I help you?'
+        }
+      };
+      const lang = languageManager.getLang() === 'de' ? 'de' : 'en';
+      const key = welcomeMap[this.brand] ? this.brand : 'obi';
+      const welcome = welcomeMap[key][lang];
+      this.addMessage('avatar', welcome || languageManager.t('welcome-message'));
     }
   }
 
   closeChat() {
     this.isOpen = false;
     this.chatPopup?.classList.add('hidden');
+    this.chatPopup?.classList.remove('visible');
     
     // Stop any playing speech when closing
     if (window.stopSpeech) {
@@ -116,7 +154,22 @@ class ChatManager {
       
       // Add AI response
       this.addMessage('avatar', response);
-      
+
+      // Force recommendations UI after a weather-like exchange
+      try {
+        const summary = weatherContext || response || '';
+        if (this.brand === 'circlek' && typeof window.showWeatherRecommendations === 'function') {
+          window.showWeatherRecommendations(summary || 'Current weather', undefined);
+          if (typeof window.showBrandRecommendations === 'function') {
+            window.showBrandRecommendations(summary, 'circlek');
+          }
+        } else if ((this.brand === 'obi' || this.brand === 'kik') && typeof window.showBrandRecommendations === 'function') {
+          window.showBrandRecommendations(summary, this.brand);
+        }
+      } catch (err) {
+        console.error('Failed to force recommendations UI', err);
+      }
+
       // Make avatar speak the response
       if (window.speak) {
         window.speak(response);
@@ -181,7 +234,13 @@ class ChatManager {
   }
 
   async getGeminiResponse(userMessage, weatherContext = '') {
-    const response = await geminiGetResponse(userMessage, weatherContext);
+    const module = await this.geminiModulePromise;
+    const fn = module?.getGeminiResponse;
+    if (typeof fn !== 'function') {
+      console.error('Gemini module missing getGeminiResponse');
+      return languageManager.t('error-message');
+    }
+    const response = await fn(userMessage, weatherContext, this.brand);
     return this.sanitizeResponse(response);
   }
 

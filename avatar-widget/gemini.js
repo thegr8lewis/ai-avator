@@ -1,6 +1,6 @@
 import languageManager from './language.js';
-import { getWeeklyForecast, generateCircleKForecast, getCurrentCity, setCurrentCity, hasSnowInForecast } from './weather.js';
-import { showWeatherRecommendations } from './recommendations-redesign.js';
+import { getWeeklyForecast, getCurrentCity, setCurrentCity, hasSnowInForecast } from './weather.js';
+// Removed generateCircleKForecast; we will craft brand-specific responses directly
 
 const GEMINI_API_KEY = (typeof process !== 'undefined' && process.env && process.env.GEMINI_API_KEY)
   || (typeof window !== 'undefined' && window.ENV && window.ENV.GEMINI_API_KEY)
@@ -16,28 +16,12 @@ console.log('🤖 Gemini API Status (v3.5):', {
 // Use only Gemini 2.5 Flash-Lite (ultra-low latency, cost efficient)
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
 
-// Detect Circle K specific intents
+// Detect simple intents (weather-focused)
 function detectIntent(userMessage) {
   const msg = userMessage.toLowerCase();
-  
-  // Forecast request
-  if (msg.includes('wetter') && (msg.includes('woche') || msg.includes('vorhersage') || msg.includes('prognose'))) {
+  if (msg.includes('wetter') || msg.includes('weather') || msg.includes('vorhersage') || msg.includes('forecast')) {
     return 'forecast';
   }
-  if (msg.includes('weather') && (msg.includes('week') || msg.includes('forecast'))) {
-    return 'forecast';
-  }
-  
-  // Tire/summer tire question
-  if (msg.includes('reifen') || msg.includes('sommerreifen') || msg.includes('tire')) {
-    return 'tires';
-  }
-  
-  // Snow question
-  if (msg.includes('schnee') || msg.includes('snow')) {
-    return 'snow';
-  }
-  
   return 'general';
 }
 
@@ -72,216 +56,120 @@ function extractCity(userMessage) {
 let waitingForCity = false;
 let lastIntent = null;
 
-export async function getGeminiResponse(userMessage, weatherContext = '') {
+const BRAND_PROMPTS = {
+  obi: {
+    de: 'Du bist der OBI Assistent. Antworte kurz, hilfsbereit und sachlich.',
+    en: 'You are the OBI assistant. Reply briefly, helpfully, and to the point.'
+  },
+  kik: {
+    de: 'Du bist der KiK Assistent. Fokus auf Mode, Angebote und Filialen. Antworte kurz und freundlich.',
+    en: 'You are the KiK assistant. Focus on fashion, deals, and stores. Be brief and friendly.'
+  },
+  circlek: {
+    de: 'Du bist Karsten von Circle K. Fokus auf Wetter, Services und kurze hilfreiche Antworten.',
+    en: 'You are Karsten from Circle K. Focus on weather, services, and concise helpful replies.'
+  }
+};
+
+export async function getGeminiResponse(userMessage, weatherContext = '', brand = 'obi') {
   try {
     console.log('🤖 Gemini Request:', { userMessage, hasWeatherContext: !!weatherContext });
     
     if (!GEMINI_API_KEY) {
-    console.warn('❌ Gemini API key not found - returning offline message');
+      console.warn('❌ Gemini API key not found - returning offline message');
+      const lang = languageManager.getLang();
+      return lang === 'de'
+        ? 'Die KI‑Antwort ist offline, weil kein API‑Schlüssel gesetzt ist.'
+        : 'AI response is offline because no API key is set.';
+    }
+  
+    // Detect intent
+    const intent = detectIntent(userMessage);
+    const city = extractCity(userMessage);
+  
+    // Update global city context if a new city is mentioned
+    if (city) {
+      setCurrentCity(city);
+      console.log('🏙️ Updated global city context to:', city);
+    }
+  
+    // Use detected city or fallback to stored context
+    const targetCity = city || getCurrentCity();
+  
+    console.log('🎯 Detected intent:', intent, 'City:', city, 'Target City:', targetCity, 'Waiting for city:', waitingForCity);
+  
+    // If we're waiting for a city and user provides one
+    if (waitingForCity && targetCity) {
+      console.log('✅ City provided after request:', targetCity);
+      waitingForCity = false;
+      // Fetch forecast for the provided city
+      const forecastData = await getWeeklyForecast(targetCity);
+      const weatherSummary = weatherContext || (forecastData ? `Weather for ${targetCity}: ${forecastData?.forecast?.forecastday?.[0]?.day?.condition?.text || ''}, avg temp ${forecastData?.forecast?.forecastday?.[0]?.day?.avgtemp_c || ''}C.` : '');
+      return await buildPrompt(userMessage, intent, targetCity, weatherSummary, brand);
+    }
+  
+    // Handle forecast requests
+    if (intent === 'forecast') {
+      if (!targetCity) {
+        waitingForCity = true;
+        lastIntent = 'forecast';
+        console.log('⚠️ No city detected, asking user...');
+        return languageManager.getLang() === 'de'
+          ? 'Für welche Stadt möchtest du das Wetter wissen?'
+          : 'Which city would you like the weather for?';
+      }
+  
+      waitingForCity = false;
+      const forecastData = await getWeeklyForecast(targetCity);
+      const weatherSummary = forecastData ? `Weather for ${targetCity}: ${forecastData?.forecast?.forecastday?.[0]?.day?.condition?.text || ''}, avg temp ${forecastData?.forecast?.forecastday?.[0]?.day?.avgtemp_c || ''}C.` : '';
+      return await buildPrompt(userMessage, intent, targetCity, weatherSummary, brand);
+    }
+  
+    // General intent
+    return await buildPrompt(userMessage, intent, targetCity, weatherContext, brand);
+  
+  } catch (err) {
+    console.error('❌ Gemini handler failed:', err);
     const lang = languageManager.getLang();
     return lang === 'de'
-      ? 'Die KI‑Antwort ist offline, weil kein API‑Schlüssel gesetzt ist.'
-      : 'AI response is offline because no API key is set.';
+      ? 'Entschuldigung, etwas ist schiefgelaufen.'
+      : 'Sorry, something went wrong.';
   }
-  
-  // Detect intent for Circle K business logic
-  const intent = detectIntent(userMessage);
-  const city = extractCity(userMessage);
-  
-  // Update global city context if a new city is mentioned
-  if (city) {
-    setCurrentCity(city);
-    console.log('🏙️ Updated global city context to:', city);
-  }
-  
-  // Use detected city or fallback to stored context
-  const targetCity = city || getCurrentCity();
-  
-  console.log('🎯 Detected intent:', intent, 'City:', city, 'Target City:', targetCity, 'Waiting for city:', waitingForCity);
-  
-  // If we're waiting for a city and user provides one
-  if (waitingForCity && targetCity) {
-    console.log('✅ City provided after request:', targetCity);
-    waitingForCity = false;
-    
-    // Fetch forecast for the provided city
-    const forecastData = await getWeeklyForecast(targetCity);
-    const circleKResponse = generateCircleKForecast(targetCity, forecastData, lastIntent === 'tires' ? 'tires' : 'wash');
-    if (circleKResponse) {
-      // Trigger weather-based recommendations
-      console.log('🎯 Setting up recommendations trigger (after city provided)...');
-      setTimeout(() => {
-        console.log('⏰ Timeout fired, showing recommendations');
-        const currentWeather = forecastData?.forecast?.forecastday?.[0]?.day;
-        const condition = currentWeather?.condition?.text || 'sunny';
-        const temp = currentWeather?.avgtemp_c || 20;
-        console.log('🌤️ Weather data:', { condition, temp });
-        
-        if (typeof showWeatherRecommendations === 'function') {
-          console.log('✅ Calling showWeatherRecommendations');
-          showWeatherRecommendations(condition, temp);
-        } else {
-          console.error('❌ showWeatherRecommendations is not a function');
-        }
-      }, 2000);
-      lastIntent = null;
-      return circleKResponse;
-    }
-  }
-  
-  // Handle forecast requests with Circle K logic
-  if (intent === 'forecast') {
-    if (!targetCity) {
-      // Ask for city if not provided
-      waitingForCity = true;
-      lastIntent = 'forecast';
-      console.log('⚠️ No city detected, asking user...');
-      return languageManager.t('region-question');
-    }
-    
-    // City provided - fetch forecast
-    waitingForCity = false;
-    console.log('✅ Fetching forecast for:', targetCity);
-    const forecastData = await getWeeklyForecast(targetCity);
-    const circleKResponse = generateCircleKForecast(targetCity, forecastData, 'wash');
-    if (circleKResponse) {
-      // Trigger weather-based recommendations after response
-      console.log('🎯 Setting up recommendations trigger...');
-      setTimeout(() => {
-        console.log('⏰ Timeout fired, showing recommendations');
-        const currentWeather = forecastData?.forecast?.forecastday?.[0]?.day;
-        const condition = currentWeather?.condition?.text || 'sunny';
-        const temp = currentWeather?.avgtemp_c || 20;
-        console.log('🌤️ Weather data:', { condition, temp, forecastData });
-        
-        if (typeof showWeatherRecommendations === 'function') {
-          console.log('✅ Calling showWeatherRecommendations');
-          showWeatherRecommendations(condition, temp);
-        } else {
-          console.error('❌ showWeatherRecommendations is not a function:', typeof showWeatherRecommendations);
-        }
-      }, 2000);
-      return circleKResponse;
-    }
-  }
-  
-  // Handle tire questions with Circle K logic
-  if (intent === 'tires') {
-    if (!targetCity) {
-      // Ask for city if not provided
-      waitingForCity = true;
-      lastIntent = 'tires';
-      console.log('⚠️ No city detected for tires, asking user...');
-      return languageManager.t('region-question');
-    }
+}
 
-    const forecastData = await getWeeklyForecast(targetCity);
-    // Use the Circle K logic to generate the tire recommendation
-    const circleKResponse = generateCircleKForecast(targetCity, forecastData, 'tires');
-    
-    if (circleKResponse) {
-      // Trigger weather-based recommendations
-      console.log('🎯 Setting up recommendations trigger (tires)...');
-      setTimeout(() => {
-        console.log('⏰ Timeout fired, showing recommendations');
-        const currentWeather = forecastData?.forecast?.forecastday?.[0]?.day;
-        const condition = currentWeather?.condition?.text || 'sunny';
-        const temp = currentWeather?.avgtemp_c || 20;
-        console.log('🌤️ Weather data:', { condition, temp });
-        
-        if (typeof showWeatherRecommendations === 'function') {
-          console.log('✅ Calling showWeatherRecommendations');
-          showWeatherRecommendations(condition, temp);
-        } else {
-          console.error('❌ showWeatherRecommendations is not a function');
-        }
-      }, 2000);
-      return circleKResponse;
-    }
-  }
-  
-  // Use Circle K system prompt
-  const systemPrompt = languageManager.getCircleKSystemPrompt(intent, { city: targetCity });
-  const prompt = weatherContext
-    ? `${systemPrompt}\n${weatherContext}\n"${userMessage}"`
-    : `${systemPrompt}\n"${userMessage}"`;
+async function buildPrompt(userMessage, intent, city, weatherSummary, brand = 'obi') {
+  const lang = languageManager.getLang();
+  const langInstruction = languageManager.getGeminiLanguageInstruction();
+  const brandKey = brand && BRAND_PROMPTS[brand] ? brand : 'obi';
+  const persona = BRAND_PROMPTS[brandKey][lang === 'de' ? 'de' : 'en'];
+  const weatherLine = weatherSummary ? `\n${weatherSummary}` : '';
+  const prompt = `${langInstruction}${persona}\nUser: ${userMessage}${weatherLine}`;
 
   const requestBody = { contents: [{ parts: [{ text: prompt }] }] };
 
-  console.log('🎯 Calling Gemini 2.5 Flash-Lite...');
-  
   try {
     const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(requestBody)
     });
-    
+
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ Gemini API error:', response.status, errorText);
-      
-      if (response.status === 429) {
-        const lang = languageManager.getLang();
-        return lang === 'de'
-          ? 'Entschuldigung, ich bin gerade überlastet. Bitte versuche es in ein paar Minuten erneut.'
-          : 'Sorry, I\'m currently overloaded. Please try again in a few minutes.';
-      }
-      
-      throw new Error(`Gemini API error: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    
-    if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
-      console.log('✅ Success with Gemini 2.5 Flash-Lite');
-      const response = data.candidates[0].content.parts[0].text;
-      
-      // Trigger recommendations for weather-related queries
-      if (weatherContext && targetCity) {
-        console.log('🎯 Weather query detected, setting up recommendations trigger...');
-        setTimeout(async () => {
-          console.log('⏰ Timeout fired, fetching weather for recommendations');
-          try {
-            const forecastData = await getWeeklyForecast(targetCity);
-            const currentWeather = forecastData?.forecast?.forecastday?.[0]?.day;
-            const condition = currentWeather?.condition?.text || 'sunny';
-            const temp = currentWeather?.avgtemp_c || 20;
-            console.log('🌤️ Weather data for recommendations:', { condition, temp });
-            
-            if (typeof showWeatherRecommendations === 'function') {
-              console.log('✅ Calling showWeatherRecommendations');
-              showWeatherRecommendations(condition, temp);
-            } else {
-              console.error('❌ showWeatherRecommendations is not a function');
-            }
-          } catch (error) {
-            console.error('❌ Error fetching weather for recommendations:', error);
-          }
-        }, 2000);
-      }
-      
-      return response;
-    } else {
-      console.warn('❌ Invalid response format from Gemini');
-      throw new Error('Invalid response format from Gemini API');
-    }
-  } catch (error) {
-    console.error('❌ Gemini API error:', error);
-    const lang = languageManager.getLang();
-    return lang === 'de'
-      ? 'Entschuldigung, ich konnte keine Antwort generieren. Bitte versuche es erneut.'
-      : 'Sorry, I couldn\'t generate a response. Please try again.';
-  }
-  } catch (finalError) {
-    console.error('CRITICAL GEMINI ERROR:', finalError);
-    if (finalError.message.includes('429')) {
-      const lang = languageManager.getLang();
+      console.error('❌ Gemini API error status:', response.status, response.statusText);
       return lang === 'de'
-        ? 'Entschuldigung, ich bin gerade überlastet. Bitte versuche es in ein paar Minuten erneut.'
-        : 'Sorry, I\'m currently overloaded. Please try again in a few minutes.';
+        ? 'Etwas ist schiefgelaufen. Bitte versuche es erneut.'
+        : 'Something went wrong. Please try again.';
     }
-    throw finalError;
+
+    const data = await response.json();
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    console.log('✅ Gemini Response:', text);
+    return text;
+  } catch (error) {
+    console.error('❌ Gemini request failed:', error);
+    return lang === 'de'
+      ? 'Entschuldigung, ich konnte gerade keine Antwort generieren.'
+      : 'Sorry, I could not generate a response right now.';
   }
 }
 

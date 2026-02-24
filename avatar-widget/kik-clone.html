@@ -1,0 +1,1751 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KiK - Mode & Mehr für die ganze Familie</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-light-gray: #F5F5F5;
+            --bg-white: #FFFFFF;
+            --text-dark: #171717;
+            --kik-red: #E30613;
+            --text-gray: #1A1A1A;
+            --text-muted: #6B7280;
+            --border-color: #E5E5E5;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-light-gray);
+            color: var(--text-dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 300;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .top-bar {
+            background-color: var(--bg-white);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.5rem 0;
+        }
+
+        .top-bar-content {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1.5rem;
+            font-size: 0.875rem;
+        }
+
+        .top-bar-content a {
+            color: var(--text-gray);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .top-bar-content a:hover {
+            color: var(--kik-red);
+        }
+
+        .main-nav {
+            background-color: var(--bg-white);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .nav-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2rem;
+        }
+
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            text-decoration: none;
+            padding: 0;
+        }
+
+        .logo img {
+            display: block;
+            height: 40px;
+            width: auto;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+            flex: 1;
+        }
+
+        .nav-links a {
+            color: var(--text-gray);
+            text-decoration: none;
+            font-size: 1rem;
+            transition: color 0.2s;
+            font-weight: 400;
+        }
+
+        .nav-links a:hover {
+            color: var(--kik-red);
+        }
+
+        .nav-links .sale {
+            color: var(--kik-red);
+            font-weight: 500;
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .search-bar {
+            position: relative;
+        }
+
+        .search-bar input {
+            padding: 0.5rem 2.5rem 0.5rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            width: 250px;
+            font-size: 0.875rem;
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: var(--kik-red);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.25rem;
+            color: var(--text-gray);
+            transition: color 0.2s;
+            position: relative;
+        }
+
+        .icon-btn:hover {
+            color: var(--kik-red);
+        }
+
+        .chat-icon-btn {
+            position: relative;
+        }
+
+        .new-feature-indicator {
+            position: absolute;
+            top: -35px;
+            right: -20px;
+            animation: pointAndBounce 2s ease-in-out infinite;
+            font-size: 1.5rem;
+            filter: drop-shadow(0 2px 4px rgba(227, 6, 19, 0.4));
+        }
+
+        @keyframes pointAndBounce {
+            0%, 100% {
+                transform: translate(0, 0) rotate(-45deg);
+            }
+            50% {
+                transform: translate(-5px, 5px) rotate(-45deg);
+            }
+        }
+
+        .new-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--kik-red);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 10px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(227, 6, 19, 0.7);
+            }
+            50% {
+                transform: scale(1.1);
+                box-shadow: 0 0 0 8px rgba(227, 6, 19, 0);
+            }
+        }
+
+        .category-carousel {
+            background-color: var(--bg-white);
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .category-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1.5rem;
+            padding: 0 1rem;
+        }
+
+        .category-row::-webkit-scrollbar {
+            display: none;
+        }
+
+        .category-item {
+            text-align: center;
+            text-decoration: none;
+            color: var(--text-dark);
+            transition: transform 0.2s;
+            width: 100%;
+        }
+
+        .category-item:hover {
+            transform: translateY(-4px);
+        }
+
+        .category-img {
+            width: 100%;
+            height: 110px;
+            border-radius: 8px;
+            object-fit: cover;
+            margin-bottom: 0.75rem;
+            border: 2px solid var(--border-color);
+        }
+
+        .category-item h3 {
+            font-size: 1rem;
+            font-weight: 300;
+        }
+
+        .hero-carousel {
+            position: relative;
+            height: 500px;
+            margin-bottom: 3rem;
+            overflow: hidden;
+            border-radius: 0;
+            width: 100vw;
+            margin-left: calc(50% - 50vw);
+        }
+
+        .hero-slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .hero-slide.active {
+            opacity: 1;
+        }
+
+        .hero-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .hero-overlay {
+            position: absolute;
+            left: 50%;
+            bottom: 24px;
+            transform: translateX(-50%);
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            max-width: 70%;
+            text-align: center;
+        }
+
+        .hero-overlay h1 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            font-weight: 300;
+        }
+
+        .hero-overlay p {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .cta-btn {
+            display: inline-block;
+            padding: 0.75rem 2rem;
+            background-color: white;
+            color: var(--text-dark);
+            text-decoration: none;
+            border: 2px solid white;
+            border-radius: 4px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .cta-btn:hover {
+            background-color: transparent;
+            color: white;
+        }
+
+        .progress-bar {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .progress-segment {
+            width: 60px;
+            height: 4px;
+            background-color: rgba(255,255,255,0.5);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-segment.active .progress-fill {
+            animation: fillProgress 5s linear;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: white;
+            width: 0;
+        }
+
+        @keyframes fillProgress {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        .section {
+            margin-bottom: 4rem;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 300;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .card {
+            background-color: var(--bg-white);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+            color: var(--text-dark);
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+
+        .card img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+
+        .card:hover img {
+            transform: scale(1.05);
+        }
+
+        .card-content {
+            padding: 1.5rem;
+        }
+
+        .card-content h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+            font-weight: 400;
+        }
+
+        .card-content p {
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .card-link {
+            color: var(--kik-red);
+            font-weight: 500;
+            text-decoration: none;
+        }
+
+        .card-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Product card (KiK style) */
+        .product-card {
+            background: var(--bg-white);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .product-media {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            overflow: hidden;
+            background: #f7f7f7;
+        }
+        .product-media img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .discount-flag {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: var(--kik-red);
+            color: #fff;
+            padding: 6px 10px;
+            font-weight: 700;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        .wishlist-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.9);
+            display: grid;
+            place-items: center;
+            color: var(--text-dark);
+            border: 1px solid #e5e7eb;
+        }
+        .wishlist-btn svg { width: 18px; height: 18px; }
+        .product-thumbs {
+            display: flex;
+            gap: 8px;
+            padding: 12px 16px 0 16px;
+        }
+        .product-thumbs img {
+            width: 56px;
+            height: 56px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+            background: #fff;
+        }
+        .product-info {
+            padding: 12px 16px 16px 16px;
+        }
+        .product-title {
+            font-size: 1.125rem;
+            font-weight: 500;
+            margin: 4px 0 2px 0;
+        }
+        .product-brand {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+        .price-row {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+        }
+        .old-price { color: #6b7280; text-decoration: line-through; font-size: 0.95rem; }
+        .new-price { color: var(--kik-red); font-weight: 800; font-size: 1.25rem; }
+
+        .brand-carousel {
+            background-color: var(--bg-white);
+            padding: 3rem 0;
+            margin-bottom: 3rem;
+        }
+
+        .brand-row {
+            display: flex;
+            gap: 2rem;
+            overflow-x: auto;
+            padding: 1rem;
+            scrollbar-width: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .brand-row::-webkit-scrollbar {
+            display: none;
+        }
+
+        .brand-logo {
+            min-width: 140px;
+            width: 140px;
+            height: 80px;
+            object-fit: contain;
+            transition: transform 0.2s, opacity 0.2s;
+            opacity: 0.7;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .brand-logo:hover {
+            transform: scale(1.05);
+            opacity: 1;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .usp-bar {
+            background-color: var(--bg-white);
+            padding: 3rem 0;
+            margin-bottom: 3rem;
+        }
+
+        .usp-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .usp-item {
+            text-align: center;
+        }
+
+        .usp-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 1rem;
+            color: var(--kik-red);
+        }
+
+        .usp-item h3 {
+            font-size: 1.125rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .usp-item p {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .seo-content {
+            background-color: var(--bg-white);
+            padding: 3rem;
+            border-radius: 8px;
+            margin-bottom: 3rem;
+        }
+
+        .seo-content h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .seo-content h2 {
+            font-size: 1.75rem;
+            margin: 2rem 0 1rem;
+        }
+
+        .seo-content h3 {
+            font-size: 1.25rem;
+            margin: 1.5rem 0 0.75rem;
+        }
+
+        .seo-content p {
+            margin-bottom: 1rem;
+            line-height: 1.8;
+        }
+
+        footer {
+            background-color: var(--text-gray);
+            color: white;
+            padding: 3rem 0 1rem;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h4 {
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section a {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            display: block;
+            margin-bottom: 0.5rem;
+            transition: color 0.2s;
+        }
+
+        .footer-section a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255,255,255,0.2);
+            padding-top: 1rem;
+            text-align: center;
+            color: rgba(255,255,255,0.6);
+            font-size: 0.875rem;
+        }
+
+        .sale-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: var(--kik-red);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .search-bar input {
+                width: 150px;
+            }
+
+            .hero-overlay h1 {
+                font-size: 2rem;
+            }
+
+            .hero-overlay p {
+                font-size: 1rem;
+            }
+
+            .grid-4 {
+                grid-template-columns: 1fr;
+            }
+
+            .category-row {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .top-bar-content {
+                font-size: 0.75rem;
+                gap: 1rem;
+            }
+        }
+
+        .notification-area {
+            position: fixed;
+            right: 2.5rem;
+            top: 8rem;
+            z-index: 20;
+            max-width: 300px;
+        }
+
+        @media (max-width: 768px) {
+            .notification-area {
+                left: 0.75rem;
+                right: 0.75rem;
+                max-width: none;
+            }
+        }
+
+        .recommendations-section {
+            background-color: var(--bg-white);
+            padding: 3rem;
+            border-radius: 8px;
+            margin-bottom: 3rem;
+        }
+
+        .recommendation-card {
+            background: var(--bg-white);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.16);
+            overflow: hidden;
+            border: none;
+            margin-bottom: 2rem;
+        }
+
+        .recommendation-header {
+            background: linear-gradient(135deg, var(--kik-red) 0%, #c70512 100%);
+            color: var(--bg-white);
+            padding: 28px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .recommendation-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .recommendation-body {
+            padding: 32px;
+        }
+
+        .product-item {
+            padding: 24px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #fafafa, #ffffff);
+            border-radius: 14px;
+            border-left: 5px solid var(--kik-red);
+            transition: all 0.3s ease;
+        }
+
+        .product-item:hover {
+            transform: translateX(10px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+            background: linear-gradient(135deg, #ffffff, #fafafa);
+        }
+
+        .product-item.highlight {
+            background: linear-gradient(135deg, #fff5f5, #ffffff);
+            border-left-width: 6px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+        }
+
+        .product-item h3 {
+            font-size: 19px;
+            margin-bottom: 10px;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+        }
+
+        .product-item p {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 14px;
+            line-height: 1.6;
+        }
+
+        .price {
+            display: inline-block;
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--kik-red);
+        }
+
+        .price.special {
+            font-size: 26px;
+        }
+
+        .badge {
+            display: inline-block;
+            margin-left: 12px;
+            padding: 6px 14px;
+            background: var(--kik-red);
+            color: var(--bg-white);
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+        }
+
+        #chat-popup {
+            position: fixed;
+            bottom: 40px;
+            left: 40px;
+            width: 450px;
+            max-height: 90vh;
+            background: var(--bg-white);
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            border: none;
+            display: none;
+            flex-direction: column;
+            z-index: 10000;
+            overflow: hidden;
+        }
+
+        #chat-popup.visible {
+            display: flex;
+        }
+
+        #chat-popup.hidden {
+            display: none;
+        }
+
+        .chat-header {
+            background: var(--bg-white);
+            color: var(--text-dark);
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .chat-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .chat-header-info {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .chat-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--bg-light-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .chat-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+
+        .chat-status {
+            font-size: 13px;
+            opacity: 0.9;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #4ade80;
+            border-radius: 50%;
+            animation: statusPulse 2s infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .header-icon-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-gray);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            padding: 8px;
+        }
+
+        .header-icon-btn svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--text-gray);
+        }
+
+        .header-icon-btn:hover {
+            background: var(--bg-light-gray);
+            border-color: var(--kik-red);
+        }
+
+        .header-icon-btn:hover svg {
+            stroke: var(--kik-red);
+        }
+
+        #close-chat {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-gray);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            font-weight: 300;
+        }
+
+        #close-chat:hover {
+            background: var(--bg-light-gray);
+            border-color: var(--kik-red);
+            color: var(--kik-red);
+            transform: rotate(90deg);
+        }
+
+        .chat-content {
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            gap: 0;
+            overflow: hidden;
+            max-height: calc(90vh - 100px);
+        }
+
+        #chat-messages {
+            overflow-y: auto;
+            padding: 24px;
+            background: var(--bg-white);
+            flex: 1;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(227, 6, 19, 0.3) transparent;
+            min-height: 300px;
+        }
+
+        #chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #chat-messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        #chat-messages::-webkit-scrollbar-thumb {
+            background: rgba(227, 6, 19, 0.3);
+            border-radius: 3px;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            padding: 14px 18px;
+            border-radius: 16px;
+            max-width: 85%;
+            line-height: 1.6;
+            animation: messageSlide 0.4s ease;
+            font-size: 14px;
+        }
+
+        @keyframes messageSlide {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-message {
+            background: var(--kik-red);
+            margin-left: auto;
+            text-align: right;
+            border-bottom-right-radius: 4px;
+            color: white;
+            font-weight: 400;
+        }
+
+        .avatar-message {
+            background: var(--bg-white);
+            border: 2px solid #e0e0e0;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 6px;
+            padding: 16px 20px;
+            background: var(--bg-white);
+            border-radius: 16px;
+            border-bottom-left-radius: 4px;
+            width: fit-content;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            background: var(--kik-red);
+            border-radius: 50%;
+            animation: typingDot 1.4s infinite;
+        }
+
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typingDot {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-12px); opacity: 1; }
+        }
+
+        .avatar-section {
+            width: 100%;
+            padding: 15px 0;
+            background: transparent;
+            border-top: none;
+            margin: 0;
+            text-align: center;
+            height: 160px;
+        }
+
+        #avatar-container {
+            width: 200px;
+            height: 160px;
+            margin: 0 auto;
+            padding: 0;
+            overflow: hidden;
+            position: relative;
+            background: transparent;
+        }
+
+        #avatar-container canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover;
+        }
+
+        .chat-input-container {
+            padding: 20px 24px;
+            background: var(--bg-white);
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        #chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-white);
+        }
+
+        #chat-input:focus {
+            border-color: var(--kik-red);
+            box-shadow: 0 0 0 3px rgba(227, 6, 19, 0.1);
+        }
+
+        #send-message {
+            padding: 12px 24px;
+            background: var(--kik-red);
+            color: var(--bg-white);
+            border: none;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 14px;
+        }
+
+        #send-message:hover {
+            background: #c70512;
+        }
+
+        #send-message:active {
+            transform: translateY(1px);
+        }
+
+        .controls {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            #chat-popup {
+                width: 100%;
+                height: 100%;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                border-radius: 0;
+                max-height: 100vh;
+            }
+
+            .new-feature-indicator {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <div class="container">
+            <div class="top-bar-content">
+                <a href="#prospekt">Prospekt</a>
+                <a href="#newsletter">Newsletter Abo</a>
+                <a href="#karriere">Karriere</a>
+                <a href="#filialfinder">Filialfinder</a>
+            </div>
+        </div>
+    </div>
+
+    <nav class="main-nav">
+        <div class="container">
+            <div class="nav-content">
+                <a href="#" class="logo" aria-label="KiK Startseite">
+                    <img src="./KiK_Logo.svg" alt="KiK" />
+                </a>
+                
+                <ul class="nav-links">
+                    <li><a href="#damen">Damen</a></li>
+                    <li><a href="#herren">Herren</a></li>
+                    <li><a href="#maedchen">Mädchen</a></li>
+                    <li><a href="#jungen">Jungen</a></li>
+                    <li><a href="#zuhause">Zuhause</a></li>
+                    <li><a href="#sale" class="sale">Sale</a></li>
+                </ul>
+
+                <div class="nav-actions">
+                    <div class="search-bar">
+                        <input type="text" placeholder="Suchen...">
+                        <span class="search-icon">🔍</span>
+                    </div>
+                    <button class="icon-btn" title="Konto" aria-label="Konto">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                    </button>
+                    <button class="icon-btn" title="Wunschliste" aria-label="Wunschliste">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/>
+                        </svg>
+                    </button>
+                    <button class="icon-btn chat-icon-btn" id="chat-btn" title="Chat" aria-label="Chat">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15a4 4 0 0 1-4 4H7l-4 4V5a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/>
+                        </svg>
+                        <span class="new-feature-indicator">👉</span>
+                        <span class="new-badge">!</span>
+                    </button>
+                    <button class="icon-btn" title="Warenkorb" aria-label="Warenkorb">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="9" cy="21" r="1"/>
+                            <circle cx="20" cy="21" r="1"/>
+                            <path d="M1 1h4l2.68 12.39a2 2 0 0 0 2 1.61h7.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="category-carousel">
+        <div class="container">
+            <div class="category-row">
+                <a href="#damen" class="category-item">
+                    <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?w=300&h=300&fit=crop" alt="Damen" class="category-img">
+                    <h3>Damen</h3>
+                </a>
+                <a href="#grosse-grossen" class="category-item">
+                    <img src="https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=300&h=300&fit=crop" alt="Große Größen" class="category-img">
+                    <h3>Große Größen</h3>
+                </a>
+                <a href="#herren" class="category-item">
+                    <img src="https://images.unsplash.com/photo-1490114538077-0a7f8cb49891?w=300&h=300&fit=crop" alt="Herren" class="category-img">
+                    <h3>Herren</h3>
+                </a>
+                <a href="#kinder" class="category-item">
+                    <img src="https://images.unsplash.com/photo-1503944583220-79d8926ad5e2?w=300&h=300&fit=crop" alt="Kinder" class="category-img">
+                    <h3>Kinder</h3>
+                </a>
+                <a href="#zuhause" class="category-item">
+                    <img src="https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=300&h=300&fit=crop" alt="Zuhause" class="category-img">
+                    <h3>Zuhause</h3>
+                </a>
+                <a href="#sale" class="category-item">
+                    <img src="https://images.unsplash.com/photo-1607083206968-13611e3d76db?w=300&h=300&fit=crop" alt="Sale" class="category-img">
+                    <h3>Sale</h3>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="hero-carousel">
+            <div class="hero-slide active">
+                <img src="https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=1600&h=600&fit=crop" alt="Frühjahrsmode" referrerpolicy="no-referrer">
+                <div class="hero-overlay">
+                    <h1>Frühjahrsmode 2024</h1>
+                    <p>Entdecke die neuesten Trends für die ganze Familie</p>
+                    <a href="#shop" class="cta-btn">Jetzt entdecken</a>
+                </div>
+            </div>
+            <div class="hero-slide">
+                <img src="https://images.unsplash.com/photo-1445205170230-053b83016050?w=1600&h=600&fit=crop" alt="Sale" referrerpolicy="no-referrer">
+                <div class="hero-overlay">
+                    <h1>Mega Sale</h1>
+                    <p>Bis zu 50% Rabatt auf ausgewählte Artikel</p>
+                    <a href="#sale" class="cta-btn">Zum Sale</a>
+                </div>
+            </div>
+            <div class="hero-slide">
+                <img src="https://images.unsplash.com/photo-1558769132-cb1aea1c8347?w=1600&h=600&fit=crop" alt="Wohnen" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1600&h=600&fit=crop';">
+                <div class="hero-overlay">
+                    <h1>Deko-Highlights</h1>
+                    <p>Verschönere dein Zuhause mit unseren Deko-Ideen</p>
+                    <a href="#deko" class="cta-btn">Mehr erfahren</a>
+                </div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-segment active">
+                    <div class="progress-fill"></div>
+                </div>
+                <div class="progress-segment">
+                    <div class="progress-fill"></div>
+                </div>
+                <div class="progress-segment">
+                    <div class="progress-fill"></div>
+                </div>
+            </div>
+        </div>
+
+        <section class="section" id="deko">
+            <h2 class="section-title">Deko-Highlights</h2>
+            <div class="grid-4">
+                <div class="product-card">
+                    <div class="product-media">
+                        <img src="https://images.unsplash.com/photo-1513694203232-719a280e022f?w=900&h=1200&fit=crop" alt="Frühlingsblumen Vase">
+                        <div class="discount-flag">-20%</div>
+                        <button class="wishlist-btn" aria-label="Zur Wunschliste hinzufügen">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+                        </button>
+                    </div>
+                    <div class="product-thumbs">
+                        <img src="https://images.unsplash.com/photo-1523419409543-28b7d1e2885d?w=200&h=200&fit=crop" alt="Vase Detail 1">
+                        <img src="https://images.unsplash.com/photo-1490367532201-b9bc1dc483f6?w=200&h=200&fit=crop" alt="Vase Detail 2">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-title">Frühlingsblumen Vase</div>
+                        <div class="product-brand">KiK Home</div>
+                        <div class="price-row">
+                            <span class="old-price">9,99€</span>
+                            <span class="new-price">7,99€</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-media">
+                        <img src="https://images.unsplash.com/photo-1615529182904-14819c35db37?w=900&h=1200&fit=crop" alt="Kerzen & Duftset">
+                        <div class="discount-flag">-30%</div>
+                        <button class="wishlist-btn" aria-label="Zur Wunschliste hinzufügen">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+                        </button>
+                    </div>
+                    <div class="product-thumbs">
+                        <img src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=200&h=200&fit=crop" alt="Duft Detail 1">
+                        <img src="https://images.unsplash.com/photo-1526045612212-70caf35c14df?w=200&h=200&fit=crop" alt="Duft Detail 2">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-title">Kerzen & Duft</div>
+                        <div class="product-brand">KiK Home</div>
+                        <div class="price-row">
+                            <span class="old-price">12,99€</span>
+                            <span class="new-price">8,99€</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-media">
+                        <img src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=900&h=1200&fit=crop" alt="Kissen & Decken">
+                        <button class="wishlist-btn" aria-label="Zur Wunschliste hinzufügen">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+                        </button>
+                    </div>
+                    <div class="product-thumbs">
+                        <img src="https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=200&h=200&fit=crop" alt="Kissen Detail 1">
+                        <img src="https://images.unsplash.com/photo-1540574163026-643ea20ade25?w=200&h=200&fit=crop" alt="Kissen Detail 2">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-title">Kissen & Decken</div>
+                        <div class="product-brand">KiK Home</div>
+                        <div class="price-row">
+                            <span class="old-price">19,99€</span>
+                            <span class="new-price">14,99€</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-media">
+                        <img src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=900&h=1200&fit=crop" alt="Wanddeko">
+                        <button class="wishlist-btn" aria-label="Zur Wunschliste hinzufügen">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+                        </button>
+                    </div>
+                    <div class="product-thumbs">
+                        <img src="https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=200&h=200&fit=crop" alt="Wanddeko Detail 1">
+                        <img src="https://images.unsplash.com/photo-1555967522-37949fc21dcb?w=200&h=200&fit=crop" alt="Wanddeko Detail 2">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-title">Wanddeko</div>
+                        <div class="product-brand">KiK Home</div>
+                        <div class="price-row">
+                            <span class="old-price">24,99€</span>
+                            <span class="new-price">19,99€</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Mode für die ganze Familie</h2>
+            <div class="grid-4">
+                <div class="product-card">
+                    <div class="product-media">
+                        <img src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=900&h=1200&fit=crop" alt="Damenmode Hoodie Schwarz">
+                        <div class="discount-flag">-54%</div>
+                        <button class="wishlist-btn" aria-label="Zur Wunschliste hinzufügen">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+                        </button>
+                    </div>
+                    <div class="product-thumbs">
+                        <img src="https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=200&h=200&fit=crop" alt="Hoodie Ansicht 1">
+                        <img src="https://images.unsplash.com/photo-1602901247015-8f8b0a56a8b5?w=200&h=200&fit=crop" alt="Hoodie Ansicht 2">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-title">Sport-Pullover mit verstellbarem Saum</div>
+                        <div class="product-brand">ErgeenomiXX</div>
+                        <div class="price-row">
+                            <span class="old-price">12,99€</span>
+                            <span class="new-price">5,99€</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-media">
+                        <img src="https://images.unsplash.com/photo-1617127365659-c47fa864d8bc?w=900&h=1200&fit=crop" alt="Herrenmode T-Shirt">
+                        <button class="wishlist-btn" aria-label="Zur Wunschliste hinzufügen">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+                        </button>
+                    </div>
+                    <div class="product-thumbs">
+                        <img src="https://images.unsplash.com/photo-1520975693415-26d6c3b16034?w=200&h=200&fit=crop" alt="T-Shirt Ansicht 1">
+                        <img src="https://images.unsplash.com/photo-1520975693416-27cff476f1be?w=200&h=200&fit=crop" alt="T-Shirt Ansicht 2">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-title">Basic T-Shirt</div>
+                        <div class="product-brand">KiK Men</div>
+                        <div class="price-row">
+                            <span class="old-price">7,99€</span>
+                            <span class="new-price">5,49€</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-media">
+                        <img src="https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?w=900&h=1200&fit=crop" alt="Kindermode Set">
+                        <button class="wishlist-btn" aria-label="Zur Wunschliste hinzufügen">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+                        </button>
+                    </div>
+                    <div class="product-thumbs">
+                        <img src="https://images.unsplash.com/photo-1498550744921-75f79806b8a7?w=200&h=200&fit=crop" alt="Kinderset Ansicht 1">
+                        <img src="https://images.unsplash.com/photo-1498551172505-8ee7ad69f235?w=200&h=200&fit=crop" alt="Kinderset Ansicht 2">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-title">Kinderset 2-teilig</div>
+                        <div class="product-brand">KiK Kids</div>
+                        <div class="price-row">
+                            <span class="old-price">14,99€</span>
+                            <span class="new-price">9,99€</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-media">
+                        <img src="https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=900&h=1200&fit=crop" alt="Accessoires Gürtel">
+                        <div class="discount-flag">Sale</div>
+                        <button class="wishlist-btn" aria-label="Zur Wunschliste hinzufügen">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+                        </button>
+                    </div>
+                    <div class="product-thumbs">
+                        <img src="https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=200&h=200&fit=crop" alt="Gürtel Detail 1">
+                        <img src="https://images.unsplash.com/photo-1592878849121-2f2721305a83?w=200&h=200&fit=crop" alt="Gürtel Detail 2">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-title">Accessoires</div>
+                        <div class="product-brand">KiK Accessoires</div>
+                        <div class="price-row">
+                            <span class="old-price">9,99€</span>
+                            <span class="new-price">6,99€</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="brand-carousel">
+        <div class="container">
+            <h2 class="section-title">Beliebte Marken & Lizenzen</h2>
+            <div class="brand-row">
+                <div class="brand-logo" style="display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; color: #ff69b4;">Hello Kitty</div>
+                <div class="brand-logo" style="display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: bold; color: #113CCF;">Disney</div>
+                <div class="brand-logo" style="display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; color: #0066CC;">Paw Patrol</div>
+                <div class="brand-logo" style="display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: bold; color: #ED1D24;">MARVEL</div>
+                <div class="brand-logo" style="display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: bold; color: #FF1493;">Princess</div>
+                <div class="brand-logo" style="display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; color: #00A8E1;">Frozen</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="usp-bar">
+        <div class="container">
+            <div class="usp-grid">
+                <div class="usp-item">
+                    <div class="usp-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    </div>
+                    <h3>Click & Collect</h3>
+                    <p>Online bestellen und in der Filiale abholen</p>
+                </div>
+                <div class="usp-item">
+                    <div class="usp-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                        </svg>
+                    </div>
+                    <h3>Versandkostenfrei</h3>
+                    <p>Ab 30€ Bestellwert versandkostenfrei</p>
+                </div>
+                <div class="usp-item">
+                    <div class="usp-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                        </svg>
+                    </div>
+                    <h3>Kostenlose Rücksendung</h3>
+                    <p>30 Tage Rückgaberecht</p>
+                </div>
+                <div class="usp-item">
+                    <div class="usp-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                    </div>
+                    <h3>Kauf auf Rechnung</h3>
+                    <p>Bequem und sicher bezahlen</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="recommendations-section" id="recommendations-section" style="display: none;">
+            <div class="recommendation-card">
+                <div class="recommendation-header">
+                    <h2>🎯 Empfohlene Produkte für Sie</h2>
+                </div>
+                <div class="recommendation-body">
+                    <div class="product-item highlight">
+                        <h3>⭐ Damen Frühjahrskollektion</h3>
+                        <p>Entdecken Sie unsere neuesten Frühjahrs-Trends für Damen - leichte Blusen, bequeme Hosen und stylische Kleider.</p>
+                        <span class="price special">ab €9.99</span>
+                        <span class="badge">NEU</span>
+                    </div>
+                    <div class="product-item">
+                        <h3>👕 Herren Basic T-Shirts 3er Pack</h3>
+                        <p>Hochwertige Baumwolle, perfekte Passform - in verschiedenen Farben erhältlich.</p>
+                        <span class="price">€12.99</span>
+                    </div>
+                    <div class="product-item">
+                        <h3>🏠 Deko-Kissen Set</h3>
+                        <p>Verschönern Sie Ihr Zuhause mit unseren gemütlichen Dekokissen in trendigen Farben.</p>
+                        <span class="price">€14.99</span>
+                        <span class="badge">SALE</span>
+                    </div>
+                    <div class="product-item">
+                        <h3>👶 Kinder Spielkleidung</h3>
+                        <p>Bunte und strapazierfähige Kleidung für aktive Kids - mit beliebten Lizenz-Motiven.</p>
+                        <span class="price">ab €7.99</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="seo-content">
+            <h1>KiK - Mode und mehr für die ganze Familie</h1>
+            <p>Willkommen bei KiK! Entdecke unsere große Auswahl an Mode, Accessoires und Wohnaccessoires für die ganze Familie zu unschlagbaren Preisen. Bei uns findest du alles, was du für deinen Alltag brauchst – von trendiger Damenmode über lässige Herrenkleidung bis hin zu bunter Kindermode und stilvollen Deko-Artikeln für dein Zuhause.</p>
+
+            <h2>Damenmode bei KiK</h2>
+            <p>Unsere Damenkollektion bietet dir eine vielfältige Auswahl an Kleidung für jeden Anlass. Ob du nach einem eleganten Outfit für besondere Anlässe suchst oder bequeme Freizeitkleidung für den Alltag benötigst – bei KiK wirst du fündig. Entdecke unsere aktuellen Trends in den Bereichen Oberteile, Hosen, Kleider, Röcke und vieles mehr.</p>
+
+            <h3>Große Größen</h3>
+            <p>Auch für Damen mit großen Größen haben wir eine umfangreiche Auswahl an modischer Kleidung. Unsere Plus-Size-Kollektion überzeugt mit trendigen Schnitten und hochwertigen Materialien, die perfekt sitzen und dich rundum wohlfühlen lassen.</p>
+
+            <h2>Herrenmode bei KiK</h2>
+            <p>Männer finden bei KiK eine große Auswahl an lässiger und stilvoller Kleidung. Von T-Shirts und Hemden über Hosen und Jeans bis hin zu Jacken und Pullovern – unsere Herrenkollektion lässt keine Wünsche offen. Entdecke auch unsere praktischen Basics, die in keinem Kleiderschrank fehlen dürfen.</p>
+
+            <h2>Kindermode für Mädchen und Jungen</h2>
+            <p>Bei KiK findest du fröhliche und bequeme Mode für Kinder jeden Alters. Unsere Kinderkollektion umfasst alles von niedlichen Baby-Bodys über bunte Spielkleidung bis hin zu coolen Outfits für Teenager. Besonders beliebt sind unsere Lizenzprodukte mit Motiven von Disney, Paw Patrol, Hello Kitty und vielen weiteren beliebten Charakteren.</p>
+
+            <h2>Wohnaccessoires und Deko</h2>
+            <p>Verschönere dein Zuhause mit unseren stilvollen Wohnaccessoires und Deko-Artikeln. Von Kissen und Decken über Kerzen und Vasen bis hin zu Wanddeko und Aufbewahrungslösungen – bei KiK findest du alles, um deine vier Wände gemütlich und individuell zu gestalten. Entdecke auch unsere saisonalen Deko-Highlights für Frühling, Sommer, Herbst und Winter.</p>
+
+            <h2>Warum bei KiK einkaufen?</h2>
+            <p>KiK steht für Mode und Qualität zu fairen Preisen. Mit über 3.700 Filialen in Europa sind wir einer der führenden Textildiscounter und bieten dir ein umfangreiches Sortiment für die ganze Familie. Profitiere von unseren attraktiven Services wie Click & Collect, kostenloser Rücksendung und Kauf auf Rechnung. Besuche uns in einer unserer Filialen oder shoppe bequem online – bei KiK findest du immer das Richtige!</p>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <h4>Service</h4>
+                    <ul>
+                        <li><a href="#">Kontakt</a></li>
+                        <li><a href="#">Versand & Lieferung</a></li>
+                        <li><a href="#">Rückgabe & Umtausch</a></li>
+                        <li><a href="#">Zahlungsarten</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Über KiK</h4>
+                    <ul>
+                        <li><a href="#">Unternehmen</a></li>
+                        <li><a href="#">Karriere</a></li>
+                        <li><a href="#">Presse</a></li>
+                        <li><a href="#">Nachhaltigkeit</a></li>
+                        <li><a href="#">Filialfinder</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Rechtliches</h4>
+                    <ul>
+                        <li><a href="#">AGB</a></li>
+                        <li><a href="#">Datenschutz</a></li>
+                        <li><a href="#">Impressum</a></li>
+                        <li><a href="#">Cookie-Einstellungen</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Folge uns</h4>
+                    <ul>
+                        <li><a href="#">Facebook</a></li>
+                        <li><a href="#">Instagram</a></li>
+                        <li><a href="#">YouTube</a></li>
+                        <li><a href="#">Pinterest</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 KiK Textilien und Non-Food GmbH. Alle Rechte vorbehalten.</p>
+            </div>
+        </div>
+    </footer>
+
+    <div class="notification-area" id="notifications"></div>
+
+    <!-- Chat Popup -->
+    <div id="chat-popup" class="hidden">
+        <div class="chat-header">
+            <div class="chat-header-info">
+                <div class="chat-avatar" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15a4 4 0 0 1-4 4H7l-4 4V5a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3>KiK Kundenservice</h3>
+                    <div class="chat-status">
+                        <span class="status-dot"></span>
+                        <span>Online</span>
+                    </div>
+                </div>
+            </div>
+            <div class="chat-header-actions">
+                <button id="lang-toggle" class="header-icon-btn" title="Sprache wechseln">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    </svg>
+                </button>
+                <button id="close-chat">×</button>
+            </div>
+        </div>
+        <div class="chat-content">
+            <div id="chat-messages"></div>
+            <div class="avatar-section">
+                <div id="avatar-container"></div>
+            </div>
+            <div class="chat-input-container">
+                <input type="text" id="chat-input" placeholder="Fragen Sie nach Produkten, Angeboten..." />
+                <button id="send-message">Senden</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"
+      }
+    }
+    </script>
+
+    <!-- Load environment variables -->
+    <script src="./kik-env.js"></script>
+
+    <!-- Load modules -->
+    <script>
+    window.CHAT_BRAND = 'kik';
+  </script>
+  <script type="module" src="./main.js"></script>
+  <script type="module" src="./chat.js"></script>
+  <script type="module" src="./recommendations-multibrand.js"></script>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.hero-slide');
+        const progressSegments = document.querySelectorAll('.progress-segment');
+        const slideInterval = 5000;
+
+        function showSlide(index) {
+            slides.forEach((slide, i) => {
+                slide.classList.remove('active');
+                progressSegments[i].classList.remove('active');
+            });
+            
+            slides[index].classList.add('active');
+            progressSegments[index].classList.add('active');
+        }
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % slides.length;
+            showSlide(currentSlide);
+        }
+
+        setInterval(nextSlide, slideInterval);
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        const searchInput = document.querySelector('.search-bar input');
+        searchInput.addEventListener('focus', function() {
+            this.style.width = '300px';
+        });
+        searchInput.addEventListener('blur', function() {
+            if (!this.value) {
+                this.style.width = '250px';
+            }
+        });
+
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-8px)';
+            });
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Chat button handlers - simplified since chat.js handles the logic
+        const chatBtn = document.getElementById('chat-btn');
+        const chatPopup = document.getElementById('chat-popup');
+        const recommendationsSection = document.getElementById('recommendations-section');
+
+        chatBtn?.addEventListener('click', () => {
+            const indicator = document.querySelector('.new-feature-indicator');
+            const badge = document.querySelector('.new-badge');
+            if (indicator) indicator.style.display = 'none';
+            if (badge) badge.style.display = 'none';
+            
+            if (recommendationsSection) {
+                recommendationsSection.style.display = 'block';
+            }
+
+            // Fallback: ensure chat opens even if chat.js didn't bind
+            if (chatPopup) {
+                chatPopup.classList.remove('hidden');
+                chatPopup.classList.add('visible');
+            }
+        });
+
+        // Expose getWeatherSummary globally for chat.js integration
+        window.getWeatherSummary = async function(city) {
+            // This will be handled by weather.js module
+            if (window.weatherModule && window.weatherModule.getWeatherSummary) {
+                return await window.weatherModule.getWeatherSummary(city);
+            }
+            return null;
+        };
+    </script>
+</body>
+</html>

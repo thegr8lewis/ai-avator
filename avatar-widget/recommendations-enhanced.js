@@ -92,6 +92,14 @@ class EnhancedRecommendationsManager {
         display: block;
       }
 
+      /* Background theme when recommendations are active */
+      body.recommendations-active {
+        background: linear-gradient(180deg, #fdf3f3 0%, #f8f9fa 100%);
+      }
+      #tab-weather-offers.recommendations-active {
+        background: linear-gradient(180deg, #fff5f5 0%, #f8f9fa 100%);
+      }
+
       /* No divider needed since we're replacing content */
       .recommendations-container::before {
         display: none;

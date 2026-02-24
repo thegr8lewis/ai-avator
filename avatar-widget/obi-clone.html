@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OBI - Alles für Heim, Haus, Garten und Bau</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --obi-orange: #E07A15;
+            --obi-dark: #333333;
+            --obi-white: #FFFFFF;
+            --light-gray: #F5F5F5;
+            --medium-gray: #767676;
+            --sale-red: #E30613;
+            --heyobi-green: #00A651;
+            --link-blue: #0066CC;
+            --star-yellow: #FFB400;
+            --success-green: #28A745;
+            --unavailable-gray: #999999;
+            --bg-warm: #FFF8F0;
+            --border-color: #E5E5E5;
+        }
+
+        body {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            background-color: var(--light-gray);
+            color: var(--obi-dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 700;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            background-color: var(--obi-white);
+            border-bottom: 1px solid var(--border-color);
+            padding: 16px 0;
+        }
+
+        .top-bar-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .obi-logo {
+            background-color: var(--obi-orange);
+            color: var(--obi-white);
+            padding: 16px 32px;
+            font-size: 36px;
+            font-weight: 700;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+
+        .store-selector {
+            display: flex;
+            flex-direction: column;
+            font-size: 15px;
+        }
+
+        .store-selector strong {
+            font-size: 17px;
+            color: var(--obi-dark);
+        }
+
+        .store-selector a {
+            color: var(--obi-orange);
+            text-decoration: none;
+        }
+
+        .search-bar {
+            flex: 1;
+            max-width: 600px;
+            position: relative;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 14px 70px 14px 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: var(--obi-orange);
+        }
+
+        .search-btn {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            padding: 0 24px;
+            background: var(--obi-orange);
+            border: none;
+            border-radius: 0 6px 6px 0;
+            color: white;
+            cursor: pointer;
+            font-size: 22px;
+        }
+
+        .top-actions {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+        }
+
+        .action-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--obi-dark);
+            font-size: 14px;
+            gap: 6px;
+        }
+
+        .action-btn svg {
+            width: 30px;
+            height: 30px;
+        }
+
+        /* Navigation Bar */
+        .main-nav {
+            background-color: var(--obi-white);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-content {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            padding: 12px 0;
+        }
+
+        .hamburger-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            padding: 10px 20px;
+            color: var(--obi-dark);
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 0;
+            align-items: center;
+        }
+
+        .nav-links li {
+            border-right: 1px solid var(--border-color);
+        }
+
+        .nav-links li:first-child {
+            border-left: 1px solid var(--border-color);
+        }
+
+        .nav-links a {
+            display: block;
+            padding: 10px 24px;
+            color: var(--obi-dark);
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-links a:hover {
+            color: var(--obi-orange);
+        }
+
+        /* Hero Carousel */
+        .hero-carousel {
+            position: relative;
+            height: 400px;
+            margin-bottom: 40px;
+            overflow: hidden;
+        }
+
+        .hero-slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            display: flex;
+        }
+
+        .hero-slide.active {
+            opacity: 1;
+        }
+
+        .hero-panel {
+            width: 40%;
+            background: var(--obi-orange);
+            padding: 60px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            color: white;
+        }
+
+        .hero-panel h1 {
+            font-size: 44px;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .hero-panel p {
+            font-size: 20px;
+            margin-bottom: 28px;
+        }
+
+        .hero-cta {
+            display: inline-block;
+            padding: 14px 40px;
+            background: white;
+            color: var(--obi-dark);
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 16px;
+            align-self: flex-start;
+        }
+
+        .hero-cta:hover {
+            background: rgba(255,255,255,0.9);
+        }
+
+        .hero-image {
+            width: 60%;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .carousel-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .carousel-btn {
+            background: rgba(255,255,255,0.9);
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .carousel-indicators {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+        }
+
+        .indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.5);
+            cursor: pointer;
+        }
+
+        .indicator.active {
+            width: 40px;
+            border-radius: 4px;
+            background: white;
+        }
+
+        /* Section Styles */
+        .section {
+            margin-bottom: 60px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--obi-dark);
+        }
+
+        .more-link {
+            color: var(--obi-orange);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .more-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Grid Layouts */
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .grid-6 {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 16px;
+        }
+
+        /* Product Card */
+        .product-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: box-shadow 0.3s ease;
+            position: relative;
+        }
+
+        .product-card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+        }
+
+        .product-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: var(--heyobi-green);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            z-index: 1;
+        }
+
+        .product-badge.sale {
+            background: var(--sale-red);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 280px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .product-image img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .product-info {
+            padding: 16px;
+        }
+
+        .product-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--obi-dark);
+            margin-bottom: 8px;
+            text-decoration: none;
+            display: block;
+            line-height: 1.4;
+            min-height: 45px;
+        }
+
+        .product-title:hover {
+            color: var(--obi-orange);
+        }
+
+        .product-rating {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+
+        .stars {
+            color: var(--star-yellow);
+        }
+
+        .review-count {
+            color: var(--medium-gray);
+        }
+
+        .availability {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .availability.available {
+            color: var(--success-green);
+        }
+
+        .availability.unavailable {
+            color: var(--unavailable-gray);
+        }
+
+        .availability-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .pickup-info {
+            font-size: 12px;
+            color: var(--medium-gray);
+            margin-bottom: 12px;
+        }
+
+        .price-section {
+            border-top: 1px solid var(--border-color);
+            padding-top: 12px;
+        }
+
+        .price-label {
+            font-size: 12px;
+            color: var(--medium-gray);
+            text-decoration: line-through;
+            margin-bottom: 4px;
+        }
+
+        .heyobi-badge {
+            display: inline-block;
+            background: var(--heyobi-green);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .product-price {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--obi-dark);
+        }
+
+        .unit-price {
+            font-size: 12px;
+            color: var(--medium-gray);
+            margin-top: 4px;
+        }
+
+        /* Category Tile */
+        .category-tile {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            aspect-ratio: 4/3;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .category-tile:hover {
+            transform: scale(1.02);
+        }
+
+        .category-tile img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .category-label {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            padding: 12px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        /* Promo Block */
+        .promo-block {
+            display: grid;
+            grid-template-columns: 40% 60%;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 40px;
+        }
+
+        .promo-content {
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .promo-content h2 {
+            font-size: 34px;
+            margin-bottom: 20px;
+            color: var(--obi-dark);
+        }
+
+        .promo-content h2 span {
+            color: var(--obi-orange);
+        }
+
+        .promo-content p {
+            font-size: 18px;
+            margin-bottom: 28px;
+            line-height: 1.6;
+        }
+
+        .promo-link {
+            color: var(--obi-orange);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .promo-link:hover {
+            text-decoration: underline;
+        }
+
+        .promo-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Carousel Container */
+        .carousel-container {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .carousel-track {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            scrollbar-width: none;
+            padding-bottom: 8px;
+        }
+
+        .carousel-track::-webkit-scrollbar {
+            display: none;
+        }
+
+        .carousel-track .product-card {
+            min-width: 280px;
+            flex-shrink: 0;
+        }
+
+        /* Chat Popup Styles */
+        #chat-popup {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 450px;
+            max-height: 90vh;
+            background: var(--obi-white);
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            border: none;
+            display: none;
+            flex-direction: column;
+            z-index: 10000;
+            overflow: hidden;
+        }
+
+        #chat-popup.visible {
+            display: flex;
+        }
+
+        #chat-popup.hidden {
+            display: none;
+        }
+
+        .chat-header {
+            background: var(--obi-orange);
+            color: white;
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header-info {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .chat-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .chat-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .chat-status {
+            font-size: 13px;
+            opacity: 0.9;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #4ade80;
+            border-radius: 50%;
+            animation: statusPulse 2s infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .chat-header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .header-icon-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header-icon-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        #close-chat {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-content {
+            display: flex;
+            flex-direction: column;
+            height: calc(90vh - 80px);
+            max-height: 600px;
+        }
+
+        #chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .message {
+            padding: 12px 16px;
+            border-radius: 12px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+
+        .user-message {
+            background: var(--obi-orange);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .avatar-message {
+            background: var(--light-gray);
+            color: var(--obi-dark);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 6px;
+            padding: 12px 16px;
+            background: var(--light-gray);
+            border-radius: 12px;
+            align-self: flex-start;
+            width: fit-content;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            background: var(--medium-gray);
+            border-radius: 50%;
+            animation: typingDot 1.4s infinite;
+        }
+
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typingDot {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-12px); opacity: 1; }
+        }
+
+        .avatar-section {
+            width: 100%;
+            padding: 15px 0;
+            background: transparent;
+            margin: 0;
+            text-align: center;
+            height: 160px;
+        }
+
+        #avatar-container {
+            width: 200px;
+            height: 160px;
+            margin: 0 auto;
+            padding: 0;
+            overflow: hidden;
+            position: relative;
+            background: transparent;
+        }
+
+        #avatar-container canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover;
+        }
+
+        .chat-input-container {
+            padding: 20px 24px;
+            background: var(--obi-white);
+            display: flex;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        #chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        #chat-input:focus {
+            outline: none;
+            border-color: var(--obi-orange);
+        }
+
+        #send-message {
+            padding: 12px 24px;
+            background: var(--obi-orange);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        #send-message:hover {
+            background: #e07a15;
+        }
+
+        /* Chat Button */
+        .chat-float-btn {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 60px;
+            height: 60px;
+            background: var(--obi-orange);
+            border-radius: 50%;
+            border: none;
+            box-shadow: 0 4px 12px rgba(246, 139, 31, 0.4);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: transform 0.2s ease;
+        }
+
+        .chat-float-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .chat-float-btn svg {
+            width: 28px;
+            height: 28px;
+            color: white;
+        }
+
+        /* Quick Nav Tiles */
+        .quick-nav-section {
+            margin: 60px 0;
+        }
+
+        .quick-nav-title {
+            font-size: 28px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 40px;
+            color: var(--obi-dark);
+        }
+
+        .quick-nav-tiles {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .quick-tile {
+            background: white;
+            border-radius: 12px;
+            padding: 32px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            text-decoration: none;
+            color: var(--obi-dark);
+            position: relative;
+        }
+
+        .quick-tile:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+        }
+
+        .quick-tile.avatar-tile {
+            background: linear-gradient(135deg, var(--obi-orange) 0%, #d66d10 100%);
+            color: white;
+        }
+
+        .quick-tile.avatar-tile:hover {
+            background: linear-gradient(135deg, #d66d10 0%, var(--obi-orange) 100%);
+        }
+
+        .tile-icon {
+            display: block;
+            margin-bottom: 16px;
+        }
+        .tile-icon svg { width: 56px; height: 56px; }
+
+        .tile-label {
+            font-size: 15px;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        .new-feature-pointer {
+            position: absolute;
+            top: -30px;
+            right: 10px;
+            animation: pointBounce 1.5s infinite;
+        }
+        .new-feature-pointer svg { width: 32px; height: 32px; color: var(--sale-red); }
+
+        .new-badge-tile {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: var(--sale-red);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            animation: badgePulse 2s infinite;
+        }
+
+        @keyframes pointBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        @keyframes badgePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-slide {
+                flex-direction: column;
+            }
+
+            .hero-panel, .hero-image {
+                width: 100%;
+            }
+
+            .hero-panel {
+                height: 50%;
+            }
+
+            .hero-image {
+                height: 50%;
+            }
+
+            .grid-4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .grid-6 {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .quick-nav-tiles {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .promo-block {
+                grid-template-columns: 1fr;
+            }
+
+            #chat-popup {
+                width: 100%;
+                height: 100%;
+                bottom: 0;
+                right: 0;
+                border-radius: 0;
+                max-height: 100vh;
+            }
+
+            .chat-float-btn {
+                bottom: 20px;
+                right: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="container">
+            <div class="top-bar-content">
+                <div class="logo-section">
+                    <a href="#" class="obi-logo">OBI</a>
+                    <div class="store-selector">
+                        <strong>Mein Markt</strong>
+                        <a href="#">Bitte auswählen</a>
+                    </div>
+                </div>
+
+                <div class="search-bar">
+                    <input type="text" placeholder="Suchbegriff eingeben">
+                    <button class="search-btn" aria-label="Suchen">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="top-actions">
+                    <a href="#" class="action-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                        </svg>
+                        Neuigkeiten
+                    </a>
+                    <a href="#" class="action-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        Anmelden
+                    </a>
+                    <a href="#" class="action-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="9" cy="21" r="1"/>
+                            <circle cx="20" cy="21" r="1"/>
+                            <path d="M1 1h4l2.68 12.39a2 2 0 0 0 2 1.61h7.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                        </svg>
+                        Warenkorb
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="main-nav">
+        <div class="container">
+            <div class="nav-content">
+                <button class="hamburger-btn">☰</button>
+                <ul class="nav-links">
+                    <li><a href="#">ALLE KATEGORIEN</a></li>
+                    <li><a href="#">BERATUNG UND PLANUNG</a></li>
+                    <li><a href="obi-offers.html">ANGEBOTE</a></li>
+                    <li><a href="#">MAGAZIN</a></li>
+                    <li><a href="#">KARRIERE</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Carousel -->
+    <div class="hero-carousel">
+        <div class="hero-slide active">
+            <div class="hero-panel">
+                <h1>Gartensaison 2024</h1>
+                <p>Alles für deinen Traumgarten - Jetzt entdecken!</p>
+                <a href="#" class="hero-cta">Jetzt shoppen</a>
+            </div>
+            <div class="hero-image" style="background-image: url('https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1200&h=800&fit=crop');"></div>
+        </div>
+        <div class="hero-slide">
+            <div class="hero-panel">
+                <h1>Frühjahrs-Sale</h1>
+                <p>Stark reduziert. Stark limitiert. Bis zu 50% sparen!</p>
+                <a href="#" class="hero-cta">Zum Sale</a>
+            </div>
+            <div class="hero-image" style="background-image: url('https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1200&h=800&fit=crop');"></div>
+        </div>
+        <div class="hero-slide">
+            <div class="hero-panel">
+                <h1>Deko-Highlights</h1>
+                <p>Verschönere dein Zuhause mit unseren Deko-Ideen</p>
+                <a href="#" class="hero-cta">Mehr erfahren</a>
+            </div>
+            <div class="hero-image" style="background-image: url('https://images.unsplash.com/photo-1513694203232-719a280e022f?w=1200&h=800&fit=crop');"></div>
+        </div>
+
+        <div class="carousel-indicators">
+            <div class="indicator active"></div>
+            <div class="indicator"></div>
+            <div class="indicator"></div>
+        </div>
+
+        <div class="carousel-controls">
+            <button class="carousel-btn" id="pause-btn" aria-label="Pause">
+                <svg id="pause-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="6" y="4" width="4" height="16"></rect>
+                    <rect x="14" y="4" width="4" height="16"></rect>
+                </svg>
+            </button>
+            <button class="carousel-btn" id="prev-btn" aria-label="Zurück">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </button>
+            <button class="carousel-btn" id="next-btn" aria-label="Weiter">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Monthly Offers Section -->
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title">Biberstarke Angebote im Februar</h2>
+                <a href="#" class="more-link">Alle Angebote →</a>
+            </div>
+            
+            <div class="carousel-container">
+                <div class="carousel-track" id="offers-carousel">
+                    <!-- Product cards will be added here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Popular Categories -->
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title">Beliebte Kategorien und Themen</h2>
+            </div>
+            
+            <div class="grid-6">
+                <div class="category-tile">
+                    <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop" alt="Akustikpaneele">
+                    <div class="category-label">Akustikpaneele</div>
+                </div>
+                <div class="category-tile">
+                    <img src="https://images.unsplash.com/photo-1585128792103-69d8394a5fde?w=400&h=300&fit=crop" alt="Gerätehäuser">
+                    <div class="category-label">Gerätehäuser</div>
+                </div>
+                <div class="category-tile">
+                    <img src="https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=400&h=300&fit=crop" alt="Anzucht">
+                    <div class="category-label">Anzucht</div>
+                </div>
+                <div class="category-tile">
+                    <img src="https://images.unsplash.com/photo-1615529328331-f8917597711f?w=400&h=300&fit=crop" alt="Böden">
+                    <div class="category-label">Böden</div>
+                </div>
+                <div class="category-tile">
+                    <img src="https://images.unsplash.com/photo-1562259949-e8e7689d7828?w=400&h=300&fit=crop" alt="Wandfarben">
+                    <div class="category-label">Wandfarben</div>
+                </div>
+                <div class="category-tile">
+                    <img src="https://images.unsplash.com/photo-1556909212-d5b604d0c90d?w=400&h=300&fit=crop" alt="Küche">
+                    <div class="category-label">Küche</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Promo Block 1 -->
+        <div class="promo-block">
+            <div class="promo-content">
+                <h2><span>Die Frühlingsvorfreude</span> steigt</h2>
+                <p>Entdecke unsere große Auswahl an Pflanzen, Saatgut und Gartenzubehör für die neue Saison.</p>
+                <a href="#" class="promo-link">Jetzt entdecken →</a>
+            </div>
+            <img src="https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800&h=500&fit=crop" alt="Garten" class="promo-image">
+        </div>
+
+        <!-- Promo Block 2 -->
+        <div class="promo-block">
+            <img src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&h=500&fit=crop" alt="Interior" class="promo-image">
+            <div class="promo-content">
+                <h2><span>Frischer Wind</span> für dein Zuhause</h2>
+                <p>Entdecke unsere Wohnideen und gestalte deine vier Wände neu mit Farben, Tapeten und Deko.</p>
+                <a href="#" class="promo-link">Zur Inspiration →</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Float Button -->
+    <button class="chat-float-btn" id="chat-btn" aria-label="Chat öffnen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a4 4 0 0 1-4 4H7l-4 4V5a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/>
+        </svg>
+    </button>
+
+    <!-- Chat Popup -->
+    <div id="chat-popup" class="hidden">
+        <div class="chat-header">
+            <div class="chat-header-info">
+                <div class="chat-avatar" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a4 4 0 0 1-4 4H7l-4 4V5a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3>OBI Kundenservice</h3>
+                    <div class="chat-status">
+                        <span class="status-dot"></span>
+                        <span>Online</span>
+                    </div>
+                </div>
+            </div>
+            <div class="chat-header-actions">
+                <button id="lang-toggle" class="header-icon-btn" title="Sprache wechseln">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    </svg>
+                </button>
+                <button id="close-chat">×</button>
+            </div>
+        </div>
+        <div class="chat-content">
+            <div id="chat-messages"></div>
+            <div class="avatar-section">
+                <div id="avatar-container"></div>
+            </div>
+            <div class="chat-input-container">
+                <input type="text" id="chat-input" placeholder="Fragen Sie nach Produkten, Angeboten..." />
+                <button id="send-message">Senden</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"
+      }
+    }
+    </script>
+
+    <!-- Load environment variables -->
+    <script src="./obi-env.js"></script>
+
+    <script>
+      window.CHAT_BRAND = 'obi';
+    </script>
+
+    <!-- Load modules -->
+    <script>
+    window.CHAT_BRAND = 'obi';
+  </script>
+  <script type="module" src="./chat.js"></script>
+  <script type="module" src="./recommendations-multibrand.js"></script>
+
+    <script>
+        // Hero Carousel
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.hero-slide');
+        const indicators = document.querySelectorAll('.indicator');
+        let autoPlay = true;
+        let slideInterval;
+
+        function showSlide(index) {
+            slides.forEach((slide, i) => {
+                slide.classList.remove('active');
+                indicators[i].classList.remove('active');
+            });
+            
+            currentSlide = (index + slides.length) % slides.length;
+            slides[currentSlide].classList.add('active');
+            indicators[currentSlide].classList.add('active');
+        }
+
+        function nextSlide() {
+            showSlide(currentSlide + 1);
+        }
+
+        function prevSlide() {
+            showSlide(currentSlide - 1);
+        }
+
+        function startAutoPlay() {
+            slideInterval = setInterval(nextSlide, 6000);
+        }
+
+        function stopAutoPlay() {
+            clearInterval(slideInterval);
+        }
+
+        document.getElementById('next-btn')?.addEventListener('click', () => {
+            nextSlide();
+            stopAutoPlay();
+        });
+
+        document.getElementById('prev-btn')?.addEventListener('click', () => {
+            prevSlide();
+            stopAutoPlay();
+        });
+
+        document.getElementById('pause-btn')?.addEventListener('click', function() {
+            if (autoPlay) {
+                stopAutoPlay();
+                this.innerHTML = '<svg id="play-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
+                autoPlay = false;
+            } else {
+                startAutoPlay();
+                this.innerHTML = '<svg id="pause-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>';
+                autoPlay = true;
+            }
+        });
+
+        indicators.forEach((indicator, index) => {
+            indicator.addEventListener('click', () => {
+                showSlide(index);
+                stopAutoPlay();
+            });
+        });
+
+        startAutoPlay();
+
+        // Product Cards Data
+        const products = [
+            {
+                title: "Bosch Akku-Bohrschrauber PSR 18 LI-2",
+                image: "https://images.unsplash.com/photo-1504148455328-c376907d081c?w=400&h=400&fit=crop",
+                rating: 4.5,
+                reviews: 246,
+                available: true,
+                heyobi: true,
+                oldPrice: "149,99",
+                price: "129,99",
+                badge: "heyOBI VORTEIL"
+            },
+            {
+                title: "Alpina Farbroller Set Premium",
+                image: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400&h=400&fit=crop",
+                rating: 4.8,
+                reviews: 189,
+                available: true,
+                heyobi: false,
+                price: "24,99",
+                badge: null
+            },
+            {
+                title: "Gardena Gartenschlauch Classic 20m",
+                image: "https://images.unsplash.com/photo-1617576683096-00fc8eecb3af?w=400&h=400&fit=crop",
+                rating: 4.3,
+                reviews: 312,
+                available: true,
+                heyobi: true,
+                oldPrice: "39,99",
+                price: "29,99",
+                badge: "heyOBI VORTEIL"
+            },
+            {
+                title: "Einhell Rasenmäher GC-EM 1743 HW",
+                image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop",
+                rating: 4.6,
+                reviews: 428,
+                available: true,
+                heyobi: false,
+                price: "119,99",
+                badge: null
+            },
+            {
+                title: "Schellenberg Rollladenmotor Premium",
+                image: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=400&h=400&fit=crop",
+                rating: 4.4,
+                reviews: 156,
+                available: false,
+                heyobi: false,
+                price: "89,99",
+                badge: null
+            }
+        ];
+
+        // Render Products
+        const carousel = document.getElementById('offers-carousel');
+        products.forEach(product => {
+            const card = document.createElement('div');
+            card.className = 'product-card';
+            
+            const stars = '★'.repeat(Math.floor(product.rating)) + '☆'.repeat(5 - Math.floor(product.rating));
+            
+            card.innerHTML = `
+                ${product.badge ? `<div class="product-badge ${product.badge.includes('SALE') ? 'sale' : ''}">${product.badge}</div>` : ''}
+                <div class="product-image">
+                    <img src="${product.image}" alt="${product.title}">
+                </div>
+                <div class="product-info">
+                    <a href="#" class="product-title">${product.title}</a>
+                    <div class="product-rating">
+                        <span class="stars">${stars}</span>
+                        <span class="review-count">(${product.reviews})</span>
+                    </div>
+                    <div class="availability ${product.available ? 'available' : 'unavailable'}">
+                        <span class="availability-dot"></span>
+                        ${product.available ? 'Online verfügbar' : 'Online nicht verfügbar'}
+                    </div>
+                    <div class="pickup-info">Abholung: Markt wählen</div>
+                    <div class="price-section">
+                        ${product.heyobi ? `
+                            <div class="price-label">ohne heyOBI: ${product.oldPrice} €</div>
+                            <div class="heyobi-badge">heyOBI Vorteil</div>
+                        ` : ''}
+                        <div class="product-price">${product.price}€</div>
+                    </div>
+                </div>
+            `;
+            
+            carousel.appendChild(card);
+        });
+
+        // Chat handlers
+        const chatBtn = document.getElementById('chat-btn');
+        const avatarToggleBtn = document.getElementById('avatar-toggle-btn');
+        const chatPopup = document.getElementById('chat-popup');
+        const closeChat = document.getElementById('close-chat');
+
+        function openChatModal() {
+            if (chatPopup) {
+                chatPopup.classList.remove('hidden');
+                chatPopup.classList.add('visible');
+                if (chatBtn) chatBtn.style.display = 'none';
+            }
+        }
+
+        function closeChatModal() {
+            if (chatPopup) {
+                chatPopup.classList.add('hidden');
+                chatPopup.classList.remove('visible');
+                if (chatBtn) chatBtn.style.display = 'flex';
+            }
+        }
+
+        chatBtn?.addEventListener('click', openChatModal);
+        avatarToggleBtn?.addEventListener('click', openChatModal);
+        closeChat?.addEventListener('click', closeChatModal);
+
+        // Expose getWeatherSummary globally for chat.js integration
+        window.getWeatherSummary = async function(city) {
+            if (window.weatherModule && window.weatherModule.getWeatherSummary) {
+                return await window.weatherModule.getWeatherSummary(city);
+            }
+            return null;
+        };
+    </script>
+</body>
+</html>

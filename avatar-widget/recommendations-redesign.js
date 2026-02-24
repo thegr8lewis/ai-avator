@@ -30,8 +30,15 @@ class RecommendationsRedesign {
       this.container.id = 'recommendations-section';
       this.container.className = 'recommendations-redesign hidden';
       weatherOffersTab.appendChild(this.container);
+    } else {
+      // Normalize class on existing placeholder
+      if (!this.container.classList.contains('recommendations-redesign')) {
+        this.container.classList.add('recommendations-redesign');
+      }
+      if (!this.container.classList.contains('hidden')) {
+        this.container.classList.add('hidden');
+      }
     }
-    
     this.injectStyles();
     this.initialized = true;
     console.log('✅ Recommendations Redesign initialized');
@@ -78,6 +85,13 @@ class RecommendationsRedesign {
 
       .recommendations-redesign.active {
         display: block;
+      }
+
+      body.recommendations-active {
+        background: linear-gradient(180deg, #fdf3f3 0%, #f8f9fa 100%);
+      }
+      #tab-weather-offers.recommendations-active {
+        background: linear-gradient(180deg, #fff5f5 0%, #f8f9fa 100%);
       }
 
       /* Hero Banner */
@@ -522,6 +536,66 @@ class RecommendationsRedesign {
     document.head.appendChild(styles);
   }
 
+  renderProductCard(item, type, lang, isFeatured = false) {
+    if (!item) return '';
+
+    const name = typeof item.name === 'object' ? (item.name[lang] || Object.values(item.name)[0]) : (item.name || '');
+    const description = typeof item.description === 'object' ? (item.description[lang] || Object.values(item.description)[0]) : (item.description || '');
+    const price = typeof item.price === 'number' ? item.price.toFixed(2) : '0.00';
+    const duration = item.duration || '';
+    const icon = item.icon || '✨';
+    const features = Array.isArray(item.features?.[lang]) ? item.features[lang] : Array.isArray(item.features) ? item.features : [];
+    const badge = item.badge || (isFeatured ? (lang === 'de' ? 'Empfohlen' : 'Featured') : '');
+    const image = item.image || 'https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?w=600&h=600&fit=crop';
+
+    return `
+      <div class="product-card${isFeatured ? ' featured' : ''}" data-id="${item.id}" data-type="${type}">
+        <div class="card-header">
+          <div class="tag">${type === 'wash' ? (lang === 'de' ? 'Waschprogramm' : 'Wash Program') : (lang === 'de' ? 'Produkt' : 'Product')}</div>
+          ${badge ? `<div class="tag">${badge}</div>` : ''}
+        </div>
+        <div class="card-body">
+          <div class="product-image">
+            <img src="${image}" alt="${name}" loading="lazy" />
+          </div>
+          <div class="product-content">
+            <div class="product-title">
+              <span class="product-icon">${icon}</span>
+              <div>
+                <h3>${name}</h3>
+                <p>${description}</p>
+              </div>
+            </div>
+            <div class="features">
+              ${features.map(feat => `
+                <div class="feature">
+                  <span class="feature-icon">✓</span>
+                  <span>${feat}</span>
+                </div>
+              `).join('')}
+            </div>
+            <div class="details">
+              <div class="price">
+                <span class="price-value">€${price}</span>
+                ${duration ? `<span class="price-period">${duration}</span>` : ''}
+              </div>
+              <div class="cta">
+                <button class="secondary">${lang === 'de' ? 'Details' : 'Details'}</button>
+                <button class="primary" onclick="window.recommendationsRedesign.toggleSelection('${item.id}','${type}', ${item.price || 0})">${lang === 'de' ? 'Auswählen' : 'Select'}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Apply theme and render
+    document.body.classList.add('recommendations-active');
+    const tab = document.getElementById('tab-weather-offers');
+    if (tab) tab.classList.add('recommendations-active');
+    this.updateContent(content);
+  }
+
   showWeatherRecommendations(weatherCondition, temperature) {
     console.log('🎬 Showing redesigned recommendations:', { weatherCondition, temperature });
     this.init();
@@ -603,41 +677,6 @@ class RecommendationsRedesign {
         </div>
       </div>
     `;
-    
-    this.updateContent(content);
-    this.attachEventListeners();
-  }
-
-  renderProductCard(item, type, lang, isRecommended) {
-    return `
-      <div class="product-card ${isRecommended ? 'recommended' : ''}" data-id="${item.id}" data-type="${type}" data-price="${item.price}">
-        ${isRecommended ? '<span class="recommended-badge">Recommended</span>' : ''}
-        <span class="card-type">${type === 'wash' ? 'WASH' : 'PRODUCT'}</span>
-        
-        <div class="card-icon">
-          ${item.icon}
-        </div>
-        
-        <h3 class="card-name">${item.name[lang]}</h3>
-        <p class="card-description">${item.description[lang]}</p>
-        
-        <div class="card-price">€${item.price.toFixed(2)}</div>
-        ${item.duration ? `<div class="card-duration">⏱ ${item.duration}</div>` : ''}
-        
-        <ul class="features-list">
-          ${item.features[lang].slice(0, 3).map(feature => `
-            <li>
-              <span class="feature-check">✓</span>
-              ${feature}
-            </li>
-          `).join('')}
-        </ul>
-        
-        <button class="select-button" onclick="window.recommendationsRedesign.toggleSelection('${item.id}', '${type}', ${item.price})">
-          ${lang === 'de' ? 'Auswählen' : 'Select'}
-        </button>
-      </div>
-    `;
   }
 
   toggleSelection(id, type, price) {
@@ -685,11 +724,14 @@ class RecommendationsRedesign {
     
     if (this.defaultContent) {
       this.defaultContent.classList.add('hidden');
+      this.defaultContent.style.display = 'none';
     }
     
     this.container.innerHTML = htmlContent;
     this.container.classList.remove('hidden');
     this.container.classList.add('active');
+    this.container.style.display = 'block';
+    console.log('✅ Recommendations content injected, container shown');
     
     setTimeout(() => {
       const weatherOffersTab = document.getElementById('tab-weather-offers');
@@ -700,30 +742,32 @@ class RecommendationsRedesign {
   }
 
   clearRecommendations() {
-    if (!this.container) return;
-    
-    this.container.classList.remove('active');
-    this.container.classList.add('hidden');
-    this.selectedItems.clear();
-    
-    setTimeout(() => {
+    if (this.container) {
+      this.container.classList.remove('active');
+      this.container.classList.add('hidden');
+      this.container.style.display = 'none';
       this.container.innerHTML = '';
-      if (this.defaultContent) {
-        this.defaultContent.classList.remove('hidden');
-      }
-    }, 300);
+    }
+    if (this.defaultContent) {
+      this.defaultContent.classList.remove('hidden');
+      this.defaultContent.style.display = '';
+    }
+    document.body.classList.remove('recommendations-active');
+    const tab = document.getElementById('tab-weather-offers');
+    if (tab) tab.classList.remove('recommendations-active');
   }
 }
 
-// Create singleton instance
+// Singleton + exports
 const recommendationsRedesign = new RecommendationsRedesign();
-window.recommendationsRedesign = recommendationsRedesign;
-
-// Export functions
 export function showWeatherRecommendations(weatherCondition, temperature) {
   recommendationsRedesign.showWeatherRecommendations(weatherCondition, temperature);
 }
-
 export function clearRecommendations() {
   recommendationsRedesign.clearRecommendations();
 }
+window.showWeatherRecommendations = showWeatherRecommendations;
+window.clearRecommendations = clearRecommendations;
+window.recommendationsRedesign = recommendationsRedesign;
+
+export default RecommendationsRedesign;
