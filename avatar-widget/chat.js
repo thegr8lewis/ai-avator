@@ -2,11 +2,15 @@
 import languageManager from './language.js';
 
 class ChatManager {
-  constructor() {
+  constructor(brand) {
+    this.brand = brand || this.resolveBrand();
     this.isOpen = false;
     this.messages = [];
-    this.brand = this.resolveBrand();
+    this.welcomeShown = false;
     this.geminiModulePromise = this.loadGeminiModule();
+    if (typeof window !== 'undefined' && !window.PROXY_BASE) {
+      window.PROXY_BASE = 'http://localhost:3001';
+    }
     this.initializeElements();
     this.bindEvents();
     
@@ -81,26 +85,28 @@ class ChatManager {
     if (attentionPointer) attentionPointer.classList.add('hidden-indicator');
     if (attentionText) attentionText.classList.add('hidden-indicator');
     
-    // Welcome message if no previous messages
-    if (this.messages.length === 0) {
+    // Welcome message (once per session)
+    if (!this.welcomeShown) {
       const welcomeMap = {
         circlek: {
-          de: 'Ich bin Karsten von Circle K. Wie kann ich dir helfen?',
-          en: 'I am Karsten from Circle K. How can I help you today?'
+          de: 'Lass dich vom Wetter der nächsten Tage zu einer Autowäsche inspirieren! Frag mich einfach, was du zum Wetter wissen möchtest. Zum Beispiel: Wie wird das Wetter am nächsten Wochenende?',
+          en: 'Let the weather over the next few days inspire your car wash! Just ask me anything you’d like to know about the weather, and I’ll respond. For example, are you interested in what the weather will be like next weekend?'
         },
         kik: {
-          de: 'Ich bin dein KiK Assistent. Was kann ich für dich tun?',
-          en: 'I am your KiK assistant. How can I help you?'
+          de: 'Lass dich vom Wetter der nächsten Tage zu einer Autowäsche inspirieren! Frag mich einfach, was du zum Wetter wissen möchtest. Zum Beispiel: Wie wird das Wetter am nächsten Wochenende?',
+          en: 'Let the weather over the next few days inspire your car wash! Just ask me anything you’d like to know about the weather, and I’ll respond. For example, are you interested in what the weather will be like next weekend?'
         },
         obi: {
-          de: 'Ich bin der OBI Assistent. Wobei kann ich unterstützen?',
-          en: 'I am the OBI assistant. How can I help you?'
+          de: 'Lass dich vom Wetter der nächsten Tage zu einer Autowäsche inspirieren! Frag mich einfach, was du zum Wetter wissen möchtest. Zum Beispiel: Wie wird das Wetter am nächsten Wochenende?',
+          en: 'Let the weather over the next few days inspire your car wash! Just ask me anything you’d like to know about the weather, and I’ll respond. For example, are you interested in what the weather will be like next weekend?'
         }
       };
       const lang = languageManager.getLang() === 'de' ? 'de' : 'en';
       const key = welcomeMap[this.brand] ? this.brand : 'obi';
-      const welcome = welcomeMap[key][lang];
-      this.addMessage('avatar', welcome || languageManager.t('welcome-message'));
+      const welcome = welcomeMap[key][lang] || languageManager.t('welcome-message');
+      this.addMessage('avatar', welcome);
+      if (window.speak) window.speak(welcome);
+      this.welcomeShown = true;
     }
   }
 
@@ -116,6 +122,8 @@ class ChatManager {
   }
 
   async sendMessage(messageText = null) {
+    if (this.isSending) return;
+    this.isSending = true;
     // Use provided message or get from input field
     const message = messageText || this.chatInput?.value.trim();
     if (!message) return;
@@ -189,6 +197,8 @@ class ChatManager {
         } catch {}
       }
       this.addMessage('avatar', languageManager.t('error-message'));
+    } finally {
+      this.isSending = false;
     }
   }
 

@@ -384,22 +384,30 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // Circle K greeting - only triggered on tab activation
 function speakCircleKGreeting() {
-  if (!avatarController || !avatarController.model) {
-    console.warn('⚠️ Avatar not ready for speech');
-    return;
-  }
-  
   const greeting = languageManager.t('circle-k-greeting');
-  console.log('🎙️ Speaking Circle K greeting:', greeting);
-  console.log('🎤 Avatar controller ready:', !!avatarController);
-  console.log('🎤 Avatar model loaded:', !!avatarController.model);
-  
-  try {
-    speak(greeting);
-    console.log('✅ Speech initiated successfully');
-  } catch (e) {
-    console.error('❌ Speech error:', e);
-  }
+  let retries = 0;
+
+  const attempt = () => {
+    if (!avatarController || !avatarController.model) {
+      if (retries < 5) {
+        retries += 1;
+        setTimeout(attempt, 300);
+      } else {
+        console.warn('⚠️ Avatar not ready for speech after retries');
+      }
+      return;
+    }
+
+    console.log('🎙️ Speaking Circle K greeting:', greeting);
+    try {
+      speak(greeting);
+      console.log('✅ Speech initiated successfully');
+    } catch (e) {
+      console.error('❌ Speech error:', e);
+    }
+  };
+
+  attempt();
 }
 
 // Circle K tab activation handler - triggers greeting

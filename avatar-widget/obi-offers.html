@@ -1394,8 +1394,8 @@
     }
     </script>
 
-    <!-- Load environment variables -->
-    <script src="./obi-env.js"></script>
+    <script>window.PROXY_BASE = 'http://localhost:3001';</script>
+    <script src="./env.js"></script>
 
     <script>
     window.CHAT_BRAND = 'obi';
@@ -1624,6 +1624,9 @@
                 chatPopup.classList.remove('hidden');
                 chatPopup.classList.add('visible');
                 if (chatBtn) chatBtn.style.display = 'none';
+                if (window.chatManager && typeof window.chatManager.openChat === 'function') {
+                    window.chatManager.openChat();
+                }
             }
         }
 

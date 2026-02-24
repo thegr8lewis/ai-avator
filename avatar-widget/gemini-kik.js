@@ -1,10 +1,7 @@
 import languageManager from './language.js';
 import { getCurrentCity, setCurrentCity } from './weather.js';
 
-const GEMINI_API_KEY = (typeof process !== 'undefined' && process.env && process.env.GEMINI_API_KEY)
-  || (typeof window !== 'undefined' && window.ENV && window.ENV.GEMINI_API_KEY)
-  || '';
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
+const PROXY_BASE = (typeof window !== 'undefined' && window.PROXY_BASE) || 'http://localhost:3001';
 
 function detectIntent(userMessage) {
   const msg = userMessage.toLowerCase();
@@ -33,12 +30,6 @@ function extractCity(userMessage) {
 
 export async function getGeminiResponse(userMessage, context = '', brand = 'kik') {
   const lang = languageManager.getLang();
-  if (!GEMINI_API_KEY) {
-    return lang === 'de'
-      ? 'Die KI‑Antwort ist offline, weil kein API‑Schlüssel gesetzt ist.'
-      : 'AI response is offline because no API key is set.';
-  }
-
   const intent = detectIntent(userMessage);
   const city = extractCity(userMessage);
   if (city) setCurrentCity(city);
@@ -65,21 +56,23 @@ async function buildPrompt(userMessage, extraContext = '', intent = 'general', s
   const ctxLine = extraContext ? `\n${extraContext}` : '';
   const storeLine = storeHint ? `\n${storeHint}` : '';
   const prompt = `${langInstruction}${persona}\n${angle}${storeLine}\nUser: ${userMessage}${ctxLine}`;
-  const requestBody = { contents: [{ parts: [{ text: prompt }] }] };
+  const requestBody = { message: userMessage, weatherContext: extraContext, brand: 'kik', intent, storeHint };
 
   try {
-    const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+    const response = await fetch(`${PROXY_BASE}/api/gemini`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(requestBody)
     });
     if (!response.ok) {
+      const text = await response.text();
+      console.error('Gemini KiK HTTP error', response.status, text);
       return lang === 'de'
         ? 'Etwas ist schiefgelaufen. Bitte versuche es erneut.'
         : 'Something went wrong. Please try again.';
     }
     const data = await response.json();
-    return data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    return data?.reply || '';
   } catch (error) {
     console.error('Gemini KiK request failed:', error);
     return lang === 'de'

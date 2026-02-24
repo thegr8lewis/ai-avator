@@ -1,23 +1,11 @@
-// OBI Website API Configuration
-// This file contains API keys for Gemini AI, ElevenLabs Voice, and Weather API
-// Copy your actual API keys here
+// OBI Website API Configuration (placeholder only)
+// Use the backend proxy (proxy-server.js or serverless) to keep real keys server-side.
 
-// Environment configuration object
 window.ENV = {
-  // Gemini API Key for AI chat responses
-  // Get your key from: https://makersuite.google.com/app/apikey
-  GEMINI_API_KEY: 'AIzaSyBqoDW_4bUbF3zpcR1oWJVRFEM-4-Rbr3I',
-  
-  // Weather API Key for weather data
-  // Get your key from: https://www.weatherapi.com/
-  WEATHER_API_KEY: '566a1abc3b4540bfaab104228250411',
-  
-  // ElevenLabs API Key for voice synthesis
-  // Get your key from: https://elevenlabs.io/app/settings/api-keys
-  ELEVENLABS_API_KEY: 'sk_7abe7f0cd04f778417241a6ace308d403144a2ff8f1318ad',
-  
-  // ElevenLabs Voice ID (default: Rachel voice)
-  ELEVENLABS_VOICE_ID: 'Cs1wOITy9rzt9SkpOKnu'
+  GEMINI_API_KEY: 'REPLACE_WITH_YOUR_KEY',
+  WEATHER_API_KEY: 'REPLACE_WITH_YOUR_KEY',
+  ELEVENLABS_API_KEY: 'REPLACE_WITH_YOUR_KEY',
+  ELEVENLABS_VOICE_ID: 'REPLACE_WITH_VOICE_ID'
 };
 
 // Also expose individual keys for backward compatibility

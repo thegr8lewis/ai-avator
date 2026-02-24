@@ -15,6 +15,7 @@
       }
     }
   </script>
+  <script>window.PROXY_BASE = 'http://localhost:3001';</script>
   <script src="./env.js"></script>
   <style>
     * {
@@ -2168,6 +2169,9 @@
           // Auto-open chat modal when avatar is enabled
           chatPopup?.classList.remove('hidden');
           chatPopup?.classList.add('visible');
+          if (window.chatManager) {
+            window.chatManager.openChat();
+          }
           
           // Hide attention indicators when chat opens
           const attentionPointer = document.getElementById('attention-pointer');

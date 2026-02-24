@@ -7,9 +7,13 @@ A modular, browser-based 3D avatar with speech, weather, chat (Gemini), and vise
 - 3D GLB avatar loading and idle animations (breathe, blink, gaze)
 - Text-to-Speech via ElevenLabs API with cloned voice support
 - Weather summary (WeatherAPI with Open‑Meteo fallback)
-- Gemini chat responses and clothing recommendations
+- Gemini chat responses (per-brand personas) and weather-triggered recommendations
 - Viseme-based mouth shapes during speech (A, E, I, O, U, MBP) with jaw fallback
 - Optional gesture animation GLB
+- Brand UIs:
+  - Circle K: in-tab redesigned recommendations + optional overlay
+  - OBI: multibrand overlay with OBI product set
+  - KiK: multibrand overlay with KiK product set
 
 ## Project Structure
 - `avatar-widget/index.html` – App HTML, loads runtime env and modules
@@ -18,10 +22,59 @@ A modular, browser-based 3D avatar with speech, weather, chat (Gemini), and vise
 - `avatar-widget/voice.js` – ElevenLabs TTS integration with cloned voice (ID: 4D2aKdYVV51kyAH4OGCY)
 - `avatar-widget/weather.js` – Weather fetch (WeatherAPI -> Open‑Meteo fallback), speech, caching
 - `avatar-widget/chat.js` – Chat UI logic, integrates with Gemini service
-- `avatar-widget/gemini.js` – Gemini API integration, robust model discovery & retries
+- `avatar-widget/gemini-*.js` – Brand-specific Gemini integration (Circle K, OBI, KiK)
+- `avatar-widget/recommendations-redesign.js` – Circle K in-tab recommendations UI
+- `avatar-widget/recommendations-multibrand.js` – Overlay recommendations for OBI, KiK, Circle K
+- `avatar-widget/products-database.js` – Circle K recommendations data
 - `avatar-widget/lipsync.js` – Text-to-viseme timeline builder
 - `avatar-widget/env.js` – Runtime API keys injected to `window.ENV` (UNTRACKED)
 - `avatar-widget/karstenSchwanke.glb` – Avatar model (Karsten Schwanke)
+- Brand pages:
+  - `circle-k-enhanced.html` – Circle K chat + avatar + recommendations
+  - `obi-offers.html`, `obi-clone.html` – OBI chat + overlay
+  - `kik-clone.html` – KiK chat + overlay
+
+### Project layout (avatar-widget/)
+```
+avatar-widget/
+├─ index.html
+├─ index-hybrid.html
+├─ circle-k.html
+├─ circle-k-enhanced.html
+├─ obi-offers.html
+├─ obi-clone.html
+├─ kik-clone.html
+├─ main.js
+├─ chat.js
+├─ avatar.js
+├─ voice.js
+├─ voice-input.js
+├─ weather.js
+├─ language.js
+├─ lipsync.js
+├─ recommendations.js
+├─ recommendations-enhanced.js
+├─ recommendations-redesign.js
+├─ recommendations-multibrand.js
+├─ products-database.js
+├─ gemini.js
+├─ gemini-circlek.js
+├─ gemini-obi.js
+├─ gemini-kik.js
+├─ env.js (local, untracked)
+├─ env.example.js
+├─ generate-env.js
+├─ obi-env.js
+├─ kik-env.js
+├─ 690cb9a0de516bcc96ba28c9.glb
+├─ Business_Professional_1112121706_texture.glb
+├─ eric_rigged_001_-_rigged_3d_business_man.glb
+├─ rigged_t-pose_human_male_w_50_face_blendshapes.glb
+├─ karstenSchwanke.glb
+├─ KiK_Logo.svg
+├─ image.png
+└─ assets (add your own images/GLBs as needed)
+```
 
 ## Prerequisites
 - A local HTTP server (avoid `file://`):
@@ -32,32 +85,38 @@ A modular, browser-based 3D avatar with speech, weather, chat (Gemini), and vise
 
 ## Setup
 1) Ensure `.gitignore` is in place (secrets are not committed)
-2) Create `avatar-widget/env.js` with your keys (UNTRACKED):
-```javascript
-// ElevenLabs API Configuration (REQUIRED for voice)
-window.ELEVENLABS_API_KEY = 'your_elevenlabs_api_key_here';
+2) Backend proxy (preferred; keeps keys server-side)
+   - Put `.env` in repo root (not committed):
+   ```
+   GEMINI_API_KEY=...
+   WEATHER_API_KEY=...
+   ELEVENLABS_API_KEY=...
+   ELEVENLABS_VOICE_ID=...
+   PORT=3001
+   ```
+   - Start locally: `node proxy-server.js`
+   - Frontend hits `/api/gemini`, `/api/weather`, `/api/tts` via `PROXY_BASE` (defaults to same-origin; set `window.PROXY_BASE = 'http://localhost:3001'` if static is on another port)
+3) Client-side keys (not recommended): `avatar-widget/env.js` with your keys (UNTRACKED). Only use if you accept exposing keys.
 
-// Optional: Other API keys
-window.GEMINI_API_KEY = 'your_gemini_api_key_here';
-window.WEATHER_API_KEY = 'your_weather_api_key_here'; // optional (Open‑Meteo fallback)
-```
-   - Get your ElevenLabs API key from: https://elevenlabs.io/app/settings/api-keys
-   - The voice ID `4D2aKdYVV51kyAH4OGCY` is already configured for your cloned voice
-3) In `avatar-widget/index.html`, keep this line before module scripts:
-```html
-<script src="./env.js"></script>
-```
-
-## Run
-- Serve the folder and open http://localhost:5173/avatar-widget/
-- The app canvas is inside `#avatar-container`
+## Run (local)
+- Start proxy: `node proxy-server.js` (loads `.env` from root and `avatar-widget/.env`)
+- Serve static: `npx serve -l 5173 .`
+- If proxy is a different origin/port, set `window.PROXY_BASE = 'http://localhost:3001'` before modules.
+- Open:
+  - Circle K: `http://localhost:5173/avatar-widget/circle-k-enhanced.html`
+  - OBI: `http://localhost:5173/avatar-widget/obi-offers.html`
+  - KiK: `http://localhost:5173/avatar-widget/kik-clone.html`
 
 ## Usage
-- Click the weather button (if present) or run from console:
+- Open a brand page and open the chat (floating button).
+- Weather question examples: “What is the weather in Berlin?”
+- Follow-up: “What do you recommend?”
+- Circle K: gets in-tab redesigned recommendations; overlay also available.
+- OBI & KiK: overlay pops with weather-tagged products.
+- Console helpers (dev):
   - `say("Hello!")` – speak arbitrary text
   - `sayWeather()` – fetch and speak the weather
-- Scale avatar:
-  - `setAvatarScale(1.2)`
+  - `setAvatarScale(1.2)` – scale avatar
 
 ## Viseme Lip Sync ("True-ish" version)
 - `lipsync.js` builds a viseme timeline from the speech text
@@ -81,11 +140,34 @@ avatarController = initAvatar({
 
 ## Environment and Security
 - Do not commit secrets
-- `.gitignore` includes:
-  - `avatar-widget/.env`
-  - `avatar-widget/env.js`
-- For purely browser-based setup, use `env.js` (runtime injection)
-- If you later adopt a bundler/server, move keys to `.env` and server-side calls
+- `.gitignore` includes `.env`, `.env.*`, `avatar-widget/.env`, `avatar-widget/env.js`
+- Preferred: proxy/serverless; frontends call `/api/gemini`, `/api/weather`, `/api/tts` via `PROXY_BASE`.
+- Static-only dev with `env.js` exposes keys—avoid for prod.
+
+## Brand Behavior & Chat/Avatar Gating
+- Language defaults to German; toggle button switches to English.
+- Welcome message is spoken once per session on first chat open.
+- Circle K: Chat/avatar only when on the “Angebote – passend zum Wetter” tab AND after clicking “Avatar anzeigen”.
+- OBI: Chat opens on user click (floating button or avatar toggle) and then speaks the welcome.
+- KiK: Chat opens on user click; no auto-open (avoids browser autoplay blocks).
+
+## Proxy Endpoints (server-side)
+- `POST /api/gemini` – Gemini content (uses server GEMINI_API_KEY)
+- `GET /api/weather` – WeatherAPI forecast (uses server WEATHER_API_KEY)
+- `POST /api/tts` – ElevenLabs TTS (uses server ELEVENLABS_API_KEY/VOICE_ID)
+
+## Deploying to Vercel (clean, serverless)
+1) Add a Vercel project and point it to this repo.
+2) Set Environment Variables in Vercel dashboard:
+   - `GEMINI_API_KEY`, `WEATHER_API_KEY`, `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID` (and optional `PORT`)
+3) Deploy `proxy-server.js` as a serverless function:
+   - Simplest: wrap it as an API route (e.g., `api/proxy.js`) or adapt to Vercel’s `export default` handler that routes `/api/gemini` and `/api/weather`.
+   - Ensure CORS if serving static site from a different domain; otherwise rely on same-origin and skip setting `PROXY_BASE`.
+4) Host static files from `avatar-widget/` (Vercel static or any CDN). If proxy is same domain, no extra config. If different domain, set `window.PROXY_BASE` to the proxy origin before loading modules.
+5) Test production URLs:
+   - `https://your-domain/avatar-widget/circle-k-enhanced.html`
+   - `https://your-domain/avatar-widget/obi-offers.html`
+   - `https://your-domain/avatar-widget/kik-clone.html`
 
 ## Logging and Debugging
 - API key status prints on load (Gemini/Weather)

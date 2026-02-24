@@ -1,7 +1,9 @@
 // Language Manager - Handles UI translations and language state
 class LanguageManager {
   constructor() {
-    this.currentLang = localStorage.getItem('preferredLanguage') || 'de'; // Circle K: German-first
+    // Always start in German; user can toggle to English
+    this.currentLang = 'de';
+    localStorage.setItem('preferredLanguage', this.currentLang);
     this.translations = {
       en: {
         'chat-button': 'Chat',
