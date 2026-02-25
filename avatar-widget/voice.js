@@ -1,17 +1,15 @@
 import languageManager from './language.js';
 
 // ElevenLabs Configuration - routed through backend proxy
-const PROXY_BASE = (typeof window !== 'undefined'
-  ? (window.PROXY_BASE !== undefined ? window.PROXY_BASE : (window.location ? `${window.location.origin}` : ''))
-  : 'http://localhost:3001');
+const PROXY_BASE = (typeof window !== 'undefined' && window.PROXY_BASE) || '';
 const VOICE_ID = (window.ELEVENLABS_VOICE_ID && !String(window.ELEVENLABS_VOICE_ID).includes('REPLACE_WITH'))
   ? window.ELEVENLABS_VOICE_ID
   : null; // when null, proxy default voice is used
 
 // Log voice configuration
 console.log('🎤 ElevenLabs Voice Configuration (proxied):', {
-  voiceId: VOICE_ID || 'proxy_default',
-  proxy: PROXY_BASE
+  proxy: PROXY_BASE || '/api',
+  voiceId: VOICE_ID || 'proxy_default'
 });
 
 let hooks = { onStart: null, onBoundary: null, onEnd: null };
@@ -98,7 +96,7 @@ function stopCurrentAudio() {
 
 // Generate speech using ElevenLabs API
 async function generateSpeech(text) {
-  const response = await fetch(`${PROXY_BASE}/api/tts`, {
+  const response = await fetch(`${PROXY_BASE || ''}/api/tts`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'

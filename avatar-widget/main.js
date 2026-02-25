@@ -54,7 +54,7 @@ dir.castShadow = false;
 scene.add(dir);
 
 // Load the GLB from the same folder as this file (avatar-widget)
-const AVATAR_URL = './Business_Professional_1112121706_texture.glb';
+const AVATAR_URL = '/avatar-widget/Business_Professional_1112121706_texture.glb';
 
 // Avatar controller
 let avatarController = null;

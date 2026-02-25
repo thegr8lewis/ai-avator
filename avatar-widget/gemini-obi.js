@@ -1,7 +1,7 @@
 import languageManager from './language.js';
 import { getWeeklyForecast, getCurrentCity, setCurrentCity } from './weather.js';
 
-const PROXY_BASE = (typeof window !== 'undefined' && window.PROXY_BASE) || 'http://localhost:3001';
+const PROXY_BASE = (typeof window !== 'undefined' && window.PROXY_BASE) || '';
 
 function detectIntent(userMessage) {
   const msg = userMessage.toLowerCase();

@@ -9,7 +9,7 @@ class ChatManager {
     this.welcomeShown = false;
     this.geminiModulePromise = this.loadGeminiModule();
     if (typeof window !== 'undefined' && !window.PROXY_BASE) {
-      window.PROXY_BASE = 'http://localhost:3001';
+      window.PROXY_BASE = '';
     }
     this.initializeElements();
     this.bindEvents();

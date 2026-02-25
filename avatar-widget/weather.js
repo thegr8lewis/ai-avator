@@ -8,7 +8,7 @@ import { showWashPrograms, showCarCareProducts } from './recommendations.js';
 
 const PROXY_BASE = (typeof window !== 'undefined'
   ? (window.PROXY_BASE !== undefined ? window.PROXY_BASE : (window.location ? `${window.location.origin}` : ''))
-  : 'http://localhost:3001');
+  : '');
 
 let fetchWeatherPromise = null;
 let clothingRecommendationCache = null;
