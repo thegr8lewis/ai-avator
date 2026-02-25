@@ -1,8 +1,6 @@
-// Vercel serverless proxy for Gemini, WeatherAPI, and ElevenLabs TTS (CommonJS)
-// Env vars: GEMINI_API_KEY, WEATHER_API_KEY, ELEVENLABS_API_KEY, ELEVENLABS_VOICE_ID
-// Routes: POST /api/gemini, GET /api/weather?city=Berlin, POST /api/tts
+// Shared helpers for Vercel API routes (Gemini, WeatherAPI, ElevenLabs)
 
-function sendJson(res, status, data, headers = {}) {
+export function sendJson(res, status, data, headers = {}) {
   res.statusCode = status;
   res.setHeader('Content-Type', 'application/json');
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -10,7 +8,7 @@ function sendJson(res, status, data, headers = {}) {
   res.end(JSON.stringify(data));
 }
 
-async function parseBody(req) {
+export async function parseBody(req) {
   return new Promise((resolve) => {
     let data = '';
     req.on('data', (chunk) => {
@@ -27,7 +25,7 @@ async function parseBody(req) {
   });
 }
 
-function parseQuery(urlStr) {
+export function parseQuery(urlStr) {
   try {
     return new URL(urlStr, 'http://localhost').searchParams;
   } catch {
@@ -35,7 +33,7 @@ function parseQuery(urlStr) {
   }
 }
 
-async function handleGemini(res, body) {
+export async function handleGemini(res, body) {
   const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
   if (!GEMINI_API_KEY) return sendJson(res, 500, { error: 'GEMINI_API_KEY missing on server' });
   const { message, weatherContext = '', brand = 'generic' } = body || {};
@@ -66,7 +64,7 @@ async function handleGemini(res, body) {
   }
 }
 
-async function handleElevenLabs(res, body) {
+export async function handleElevenLabs(res, body) {
   const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY || '';
   if (!ELEVENLABS_API_KEY) return sendJson(res, 500, { error: 'ELEVENLABS_API_KEY missing on server' });
   const requestedVoice = body?.voiceId;
@@ -106,7 +104,7 @@ async function handleElevenLabs(res, body) {
   }
 }
 
-async function handleWeather(res, query) {
+export async function handleWeather(res, query) {
   const WEATHER_API_KEY = process.env.WEATHER_API_KEY || '';
   if (!WEATHER_API_KEY) return sendJson(res, 500, { error: 'WEATHER_API_KEY missing on server' });
   const city = query.get('city');
@@ -121,35 +119,3 @@ async function handleWeather(res, query) {
     return sendJson(res, 500, { error: 'weather_request_failed', detail: String(err) });
   }
 }
-
-module.exports = async function handler(req, res) {
-  // CORS preflight
-  if (req.method === 'OPTIONS') {
-    res.writeHead(204, {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type'
-    });
-    return res.end();
-  }
-
-  const url = new URL(req.url, 'http://localhost');
-  const pathname = url.pathname;
-
-  if (pathname.startsWith('/api/gemini') && req.method === 'POST') {
-    const body = await parseBody(req);
-    return handleGemini(res, body);
-  }
-
-  if (pathname.startsWith('/api/weather') && req.method === 'GET') {
-    const query = parseQuery(req.url);
-    return handleWeather(res, query);
-  }
-
-  if (pathname.startsWith('/api/tts') && req.method === 'POST') {
-    const body = await parseBody(req);
-    return handleElevenLabs(res, body);
-  }
-
-  return sendJson(res, 404, { error: 'not_found' });
-};
