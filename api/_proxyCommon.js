@@ -1,6 +1,6 @@
-// Shared helpers for Vercel API routes (Gemini, WeatherAPI, ElevenLabs)
+// Shared helpers for Vercel API routes (CommonJS)
 
-export function sendJson(res, status, data, headers = {}) {
+function sendJson(res, status, data, headers = {}) {
   res.statusCode = status;
   res.setHeader('Content-Type', 'application/json');
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -8,7 +8,7 @@ export function sendJson(res, status, data, headers = {}) {
   res.end(JSON.stringify(data));
 }
 
-export async function parseBody(req) {
+async function parseBody(req) {
   return new Promise((resolve) => {
     let data = '';
     req.on('data', (chunk) => {
@@ -25,7 +25,7 @@ export async function parseBody(req) {
   });
 }
 
-export function parseQuery(urlStr) {
+function parseQuery(urlStr) {
   try {
     return new URL(urlStr, 'http://localhost').searchParams;
   } catch {
@@ -33,7 +33,7 @@ export function parseQuery(urlStr) {
   }
 }
 
-export async function handleGemini(res, body) {
+async function handleGemini(res, body) {
   const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
   if (!GEMINI_API_KEY) return sendJson(res, 500, { error: 'GEMINI_API_KEY missing on server' });
   const { message, weatherContext = '', brand = 'generic' } = body || {};
@@ -64,7 +64,7 @@ export async function handleGemini(res, body) {
   }
 }
 
-export async function handleElevenLabs(res, body) {
+async function handleElevenLabs(res, body) {
   const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY || '';
   if (!ELEVENLABS_API_KEY) return sendJson(res, 500, { error: 'ELEVENLABS_API_KEY missing on server' });
   const requestedVoice = body?.voiceId;
@@ -104,7 +104,7 @@ export async function handleElevenLabs(res, body) {
   }
 }
 
-export async function handleWeather(res, query) {
+async function handleWeather(res, query) {
   const WEATHER_API_KEY = process.env.WEATHER_API_KEY || '';
   if (!WEATHER_API_KEY) return sendJson(res, 500, { error: 'WEATHER_API_KEY missing on server' });
   const city = query.get('city');
@@ -119,3 +119,12 @@ export async function handleWeather(res, query) {
     return sendJson(res, 500, { error: 'weather_request_failed', detail: String(err) });
   }
 }
+
+module.exports = {
+  sendJson,
+  parseBody,
+  parseQuery,
+  handleGemini,
+  handleElevenLabs,
+  handleWeather
+};
