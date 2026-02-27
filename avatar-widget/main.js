@@ -253,6 +253,8 @@ window.say = (t) => speak(t);
 window.sayWeather = () => fetchWeatherAndSpeak();
 window.speak = speak;
 window.getWeatherSummary = getWeatherSummary;
+// Also expose under window.weatherModule for pages that reference it
+window.weatherModule = Object.assign(window.weatherModule || {}, { getWeatherSummary });
 window.activateCircleKTab = activateCircleKTab;
 window.speakCircleKGreeting = speakCircleKGreeting;
 

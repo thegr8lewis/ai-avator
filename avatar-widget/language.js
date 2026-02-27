@@ -15,7 +15,7 @@ class LanguageManager {
         'error-message': 'Sorry, I encountered an error. Please try again.',
         'weather-unavailable': 'Weather data is currently unavailable.',
         'weather-error': 'Sorry, I could not fetch the weather right now.',
-        'circle-k-greeting': 'Let the weather of the coming days inspire your car wash! Simply ask me anything you\'d like to know about the weather, and I\'ll respond. For example, are you interested in what the weather will be like next weekend?'
+        'circle-k-greeting': 'Let the weather of the coming days inspire your car wash! Simply ask me anything you\'d like to know about the weather. For example, are you interested in what the weather will be like next weekend?'
       },
       de: {
         'chat-button': 'Chat',
@@ -25,7 +25,7 @@ class LanguageManager {
         'welcome-message': 'Ich bin Karsten, dein digitaler Assistent.',
         'typing-indicator': 'Karsten denkt nach...',
         'error-message': 'Entschuldigung, es ist ein Fehler aufgetreten. Bitte versuche es erneut.',
-        'circle-k-greeting': 'Lass dich vom Wetter der kommenden Tage zu deiner Autowäsche inspirieren! Frag mich einfach, was du über das Wetter wissen möchtest, und ich antworte dir. Interessiert dich zum Beispiel, wie das Wetter am kommenden Wochenende wird?',
+        'circle-k-greeting': 'Lass dich vom Wetter der kommenden Tage zu deiner Autowäsche inspirieren! Frag mich einfach, was du über das Wetter wissen möchtest. Interessiert dich zum Beispiel, wie das Wetter am kommenden Wochenende wird?',
         'weather-unavailable': 'Wetterdaten sind derzeit nicht verfügbar.',
         'weather-error': 'Entschuldigung, ich konnte das Wetter gerade nicht abrufen.',
         'tab-label': 'Angebote – passend zum Wetter',
@@ -125,18 +125,18 @@ class LanguageManager {
     
     if (this.currentLang === 'de') {
       if (intent === 'forecast') {
-        return `${langInstruction}Du bist Karsten von Circle K. Kurze Antworten (2 Sätze). ${context.city ? 'Bestätige Stadt.' : 'Frage: "Für welche Region?"'}`;
+        return `${langInstruction}Du bist ein freundlicher Circle K Assistent. Kurze Antworten (2 Sätze). ${context.city ? 'Bestätige Stadt.' : 'Frage: "Für welche Region?"'}`;
       }
       
       if (intent === 'tires') {
-        return `${langInstruction}Du bist Karsten von Circle K. Kurze Wetterauskunft + "Circle K hat einen Tipp für Dich!"`;
+        return `${langInstruction}Du bist ein freundlicher Circle K Assistent. Kurze Wetterauskunft + "Circle K hat einen Tipp für Dich!"`;
       }
       
-      return `${langInstruction}Du bist Karsten von Circle K. Freundlich, kurz (2 Sätze).`;
+      return `${langInstruction}Du bist ein freundlicher Circle K Assistent. Freundlich, kurz (2 Sätze).`;
     }
     
     // English
-    return `${langInstruction}You're Karsten from Circle K. Brief, friendly (2 sentences).`;
+    return `${langInstruction}You're a friendly Circle K assistant. Brief, friendly (2 sentences).`;
   }
 
   // Get system prompt for Gemini (legacy compatibility)
@@ -145,13 +145,13 @@ class LanguageManager {
     
     if (includeWeather && weatherContext) {
       return this.currentLang === 'de'
-        ? `${langInstruction}Karsten von Circle K. Kontext: ${weatherContext}. Kurz (2 Sätze).`
-        : `${langInstruction}Karsten from Circle K. Context: ${weatherContext}. Brief (2 sentences).`;
+        ? `${langInstruction}Circle K Assistent. Kontext: ${weatherContext}. Kurz (2 Sätze).`
+        : `${langInstruction}Circle K assistant. Context: ${weatherContext}. Brief (2 sentences).`;
     }
 
     return this.currentLang === 'de'
-      ? `${langInstruction}Karsten von Circle K. Kurz, freundlich (2 Sätze).`
-      : `${langInstruction}Karsten from Circle K. Brief, friendly (2 sentences).`;
+      ? `${langInstruction}Circle K Assistent. Kurz, freundlich (2 Sätze).`
+      : `${langInstruction}Circle K assistant. Brief, friendly (2 sentences).`;
   }
 }
 

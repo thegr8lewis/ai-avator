@@ -6,9 +6,17 @@ import languageManager from './language.js';
 import { speak, speakThen } from './voice.js';
 import { showWashPrograms, showCarCareProducts } from './recommendations.js';
 
-const PROXY_BASE = (typeof window !== 'undefined'
-  ? (window.PROXY_BASE !== undefined ? window.PROXY_BASE : (window.location ? `${window.location.origin}` : ''))
-  : '');
+// Weather API key from env (WeatherAPI.com). If missing, we'll fall back to Open-Meteo.
+const WEATHER_API_KEY = (typeof window !== 'undefined' && window.WEATHER_API_KEY && !String(window.WEATHER_API_KEY).includes('REPLACE_WITH'))
+  ? String(window.WEATHER_API_KEY)
+  : '';
+
+const PROXY_BASE = '';
+
+function getLangParam() {
+  const l = languageManager.getLang?.() || 'en';
+  return l === 'de' ? 'de' : 'en';
+}
 
 let fetchWeatherPromise = null;
 let clothingRecommendationCache = null;
@@ -47,58 +55,51 @@ async function getCoordinates(city) {
 
 export async function getWeatherSummary(city = null) {
   console.log('🌤️ getWeatherSummary called with city:', city);
-  try {
-    // Use provided city or fall back to last known city
-    const cityQuery = city || currentCity;
-    
-    if (!cityQuery) {
-      console.log('⚠️ No city provided for weather summary');
-      return null;
-    }
-    
-    // Update current city if a new one is provided
-    if (city) currentCity = city;
-    
-    console.log('🌤️ Using cityQuery:', cityQuery);
-    const lang = languageManager.getWeatherLangCode();
-    
+  // Use provided city or fall back to last known city
+  const cityQuery = city || currentCity;
+  if (!cityQuery) {
+    console.log('⚠️ No city provided for weather summary');
+    return null;
+  }
+  // Update current city if a new one is provided
+  if (city) currentCity = city;
+
+  // Try WeatherAPI first
+  if (WEATHER_API_KEY) {
     try {
-      const weatherUrl = `${PROXY_BASE}/api/weather?city=${encodeURIComponent(cityQuery)}`;
-      const res = await fetch(weatherUrl);
+      const lang = getLangParam();
+      const url = `https://api.weatherapi.com/v1/forecast.json?key=${encodeURIComponent(WEATHER_API_KEY)}&q=${encodeURIComponent(cityQuery)}&days=1&aqi=no&alerts=no&lang=${lang}`;
+      const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
-        const cityName = data?.location?.name || (lang === 'de' ? 'deiner Gegend' : 'your area');
-        console.log('🌤️ Weather API returned city:', cityName);
-        const condition = (data?.current?.condition?.text || (lang === 'de' ? 'klarer Himmel' : 'clear sky')).toLowerCase();
-        const temp = Math.round(data?.current?.temp_c);
-        const feels = Math.round(data?.current?.feelslike_c);
-        const humidity = Math.round(data?.current?.humidity);
-        if (lang === 'de') {
-          return `In ${cityName} ist es ${condition}, ${temp}°C (fühlt sich an wie ${feels}°C), Luftfeuchtigkeit ${humidity}%.`;
+        const cityName = data?.location?.name || cityQuery;
+        const condition = data?.current?.condition?.text || '';
+        const temp = Math.round(data?.current?.temp_c ?? (data?.forecast?.forecastday?.[0]?.day?.avgtemp_c ?? 0));
+        const feels = Math.round(data?.current?.feelslike_c ?? temp);
+        const humidity = Math.round(data?.current?.humidity ?? 0);
+        if (languageManager.getLang() === 'de') {
+          return `In ${cityName} sind es ${temp}°C (gefühlt ${feels}°C) mit ${condition}, Luftfeuchtigkeit ${humidity}%.`;
         }
-        return `In ${cityName}, it is ${condition}, ${temp}°C (feels like ${feels}°C), humidity ${humidity}%.`;
+        return `In ${cityName}, it's ${temp}°C (feels like ${feels}°C) with ${condition}, humidity ${humidity}%.`;
       }
-    } catch {}
-  } catch {}
-  
+    } catch (e) {
+      console.warn('WeatherAPI summary failed:', e);
+    }
+  }
+
   // Fallback to Open-Meteo
   try {
     let lat;
     let lon;
     let cityName;
-    let isGeneric = false;
 
-    if (cityQuery) {
-      const coords = await getCoordinates(cityQuery);
-      if (coords) {
-        lat = coords.lat;
-        lon = coords.lon;
-        cityName = coords.name;
-      } else {
-         return languageManager.t('weather-unavailable');
-      }
+    const coords = await getCoordinates(cityQuery);
+    if (coords) {
+      lat = coords.lat;
+      lon = coords.lon;
+      cityName = coords.name;
     } else {
-        return languageManager.t('weather-unavailable');
+      return languageManager.t('weather-unavailable');
     }
 
     const omUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,relative_humidity_2m,apparent_temperature`;
@@ -110,7 +111,6 @@ export async function getWeatherSummary(city = null) {
       const humidity2 = Math.round(data2.current?.relative_humidity_2m);
       const code = data2.current?.weather_code;
       const desc2 = mapWeatherCode(code, languageManager.getLang());
-      
       if (languageManager.getLang() === 'de') {
         return `In ${cityName} sind es ${temp2}°C (gefühlt ${feels2}°C) mit ${desc2}, Luftfeuchtigkeit ${humidity2}%.`;
       }
@@ -135,30 +135,25 @@ export async function fetchWeatherAndSpeak(city = null) {
   // Update current city if a new one is provided
   if (city) currentCity = city;
 
-  try {
-    fetchWeatherPromise = (async () => {
-      const lang = languageManager.getWeatherLangCode();
-      const currentLangCode = languageManager.getLang();
-
-      let res;
-      try {
-        const weatherUrl = `${PROXY_BASE}/api/weather?city=${encodeURIComponent(cityQuery)}`;
-        res = await fetch(weatherUrl);
-      } catch {}
-
-      if (res && res.ok) {
+  // Prefer WeatherAPI if key is present
+  if (WEATHER_API_KEY) {
+    try {
+      fetchWeatherPromise = (async () => {
+        const lang = getLangParam();
+        const res = await fetch(`https://api.weatherapi.com/v1/current.json?key=${encodeURIComponent(WEATHER_API_KEY)}&q=${encodeURIComponent(cityQuery)}&aqi=no&lang=${lang}`);
+        if (!res.ok) throw new Error(`WeatherAPI HTTP ${res.status}`);
         const data = await res.json();
-        const city = data?.location?.name || (currentLangCode === 'de' ? 'deiner Gegend' : 'your area');
-        const condition = (data?.current?.condition?.text || (currentLangCode === 'de' ? 'klarer Himmel' : 'clear sky')).toLowerCase();
+        const currentLangCode = languageManager.getLang();
         const temp = Math.round(data?.current?.temp_c);
-        const feels = Math.round(data?.current?.feelslike_c);
-        const humidity = Math.round(data?.current?.humidity);
+        const condition = data?.current?.condition?.text || '';
+        const cityName = data?.location?.name || cityQuery;
         const weatherSummary = currentLangCode === 'de'
-          ? `Guten Tag! In ${city} ist es derzeit ${condition} mit ${temp} Grad Celsius, fühlt sich an wie ${feels}. Die Luftfeuchtigkeit beträgt ${humidity} Prozent.`
-          : `Good day! In ${city}, it is currently ${condition} with ${temp} degrees Celsius, feeling like ${feels}. Humidity is ${humidity} percent.`;
+          ? `Gerade in ${cityName} sind es ${temp} Grad Celsius mit ${condition}.`
+          : `Right now in ${cityName}, it's ${temp} degrees Celsius with ${condition}.`;
         await new Promise((resolve) => {
           speakThen(weatherSummary, async () => {
-            const clothingAdvice = await getCachedClothingRecommendation(data, currentLangCode);
+            const simplifiedData = { current: { temp_c: temp, condition: { text: condition } } };
+            const clothingAdvice = await getCachedClothingRecommendation(simplifiedData, currentLangCode);
             if (clothingAdvice) {
               const promoMessage = currentLangCode === 'de' 
                 ? ' Kaufen Sie bei uns ein, wir haben alles für Sie!'
@@ -168,15 +163,26 @@ export async function fetchWeatherAndSpeak(city = null) {
             resolve();
           });
         });
-        return { provider: 'proxy-weatherapi', data };
-      }
-      
+        return { provider: 'weatherapi', data };
+      })();
+      return await fetchWeatherPromise;
+    } catch (e) {
+      console.error('WeatherAPI error:', e);
+      speak(languageManager.t('weather-error'));
+    } finally {
+      fetchWeatherPromise = null;
+    }
+  }
+
+  // Fallback to Open-Meteo
+  try {
+    fetchWeatherPromise = (async () => {
+      const currentLangCode = languageManager.getLang();
       const coords = await getCoordinates(cityQuery);
       if (!coords) {
-         speak(languageManager.t('weather-unavailable'));
-         return null;
+        speak(languageManager.t('weather-unavailable'));
+        return null;
       }
-      
       const lat = coords.lat;
       const lon = coords.lon;
       const omUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code`;
@@ -227,20 +233,6 @@ async function updateClothingRecommendationCache(city = null) {
   try {
     const cityQuery = city || currentCity;
     if (!cityQuery) return;
-    
-    const lang = languageManager.getWeatherLangCode();
-    const currentLangCode = languageManager.getLang();
-    const weatherUrl = `${PROXY_BASE}/api/weather?city=${encodeURIComponent(cityQuery)}`;
-    let res;
-    try { res = await fetch(weatherUrl); } catch {}
-    if (res && res.ok) {
-      const data = await res.json();
-      lastWeatherData = data;
-      const recommendation = await getClothingRecommendation(data, currentLangCode);
-      if (recommendation) {
-        clothingRecommendationCache = recommendation;
-      }
-    }
   } catch {}
 }
 
@@ -259,25 +251,24 @@ async function getCachedClothingRecommendation(weatherData, lang = 'en') {
 export async function getWeeklyForecast(city) {
   if (!city) return null;
   try {
-    const lang = languageManager.getWeatherLangCode();
-
-    // Use backend proxy (WeatherAPI via proxy)
-    const proxyUrl = `${PROXY_BASE}/api/weather?city=${encodeURIComponent(city)}&days=7&lang=${lang}`;
-    let proxyRes;
-    try { proxyRes = await fetch(proxyUrl); } catch {}
-    if (proxyRes && proxyRes.ok) {
-      const data = await proxyRes.json();
+    // Prefer WeatherAPI if key is present
+    if (WEATHER_API_KEY) {
+      const lang = getLangParam();
+      const url = `https://api.weatherapi.com/v1/forecast.json?key=${encodeURIComponent(WEATHER_API_KEY)}&q=${encodeURIComponent(city)}&days=7&aqi=no&alerts=no&lang=${lang}`;
+      const waRes = await fetch(url);
+      if (!waRes.ok) throw new Error('Forecast fetch failed');
+      const data = await waRes.json();
       forecastCache[city] = data;
       return data;
     }
 
     // Fallback to Open-Meteo
+    const lang = getLangParam();
     const geocodeUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=${lang}`;
     const geoRes = await fetch(geocodeUrl);
     if (!geoRes.ok) throw new Error('Geocoding failed');
     const geoData = await geoRes.json();
     if (!geoData.results || geoData.results.length === 0) throw new Error('City not found');
-    
     const { latitude, longitude } = geoData.results[0];
     const forecastUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&timezone=auto`;
     const omRes = await fetch(forecastUrl);

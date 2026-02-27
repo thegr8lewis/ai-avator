@@ -66,8 +66,8 @@ const BRAND_PROMPTS = {
     en: 'You are the KiK assistant. Focus on fashion, deals, and stores. Be brief and friendly.'
   },
   circlek: {
-    de: 'Du bist Karsten von Circle K. Fokus auf Wetter, Services und kurze hilfreiche Antworten.',
-    en: 'You are Karsten from Circle K. Focus on weather, services, and concise helpful replies.'
+    de: 'Du bist ein freundlicher Circle K Assistent. Fokus auf Wetter, Services und kurze hilfreiche Antworten.',
+    en: 'You are a friendly Circle K assistant. Focus on weather, services, and concise helpful replies.'
   }
 };
 

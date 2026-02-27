@@ -1,15 +1,17 @@
 import languageManager from './language.js';
 
-// ElevenLabs Configuration - routed through backend proxy
-const PROXY_BASE = (typeof window !== 'undefined' && window.PROXY_BASE) || '';
-const VOICE_ID = (window.ELEVENLABS_VOICE_ID && !String(window.ELEVENLABS_VOICE_ID).includes('REPLACE_WITH'))
-  ? window.ELEVENLABS_VOICE_ID
-  : null; // when null, proxy default voice is used
+// ElevenLabs Configuration - direct browser calls (keys are exposed; local dev only)
+const ELEVENLABS_API_KEY = (typeof window !== 'undefined' && window.ELEVENLABS_API_KEY && !String(window.ELEVENLABS_API_KEY).includes('REPLACE_WITH'))
+  ? String(window.ELEVENLABS_API_KEY)
+  : '';
+const VOICE_ID = (typeof window !== 'undefined' && window.ELEVENLABS_VOICE_ID && !String(window.ELEVENLABS_VOICE_ID).includes('REPLACE_WITH'))
+  ? String(window.ELEVENLABS_VOICE_ID)
+  : 'Cs1wOITy9rzt9SkpOKnu';
 
 // Log voice configuration
-console.log('🎤 ElevenLabs Voice Configuration (proxied):', {
-  proxy: PROXY_BASE || '/api',
-  voiceId: VOICE_ID || 'proxy_default'
+console.log('🎤 ElevenLabs Voice Configuration (direct):', {
+  voiceId: VOICE_ID,
+  hasApiKey: Boolean(ELEVENLABS_API_KEY)
 });
 
 let hooks = { onStart: null, onBoundary: null, onEnd: null };
@@ -96,26 +98,38 @@ function stopCurrentAudio() {
 
 // Generate speech using ElevenLabs API
 async function generateSpeech(text) {
-  const response = await fetch(`${PROXY_BASE || ''}/api/tts`, {
+  if (!ELEVENLABS_API_KEY) {
+    throw new Error('ELEVENLABS_API_KEY missing (set window.ELEVENLABS_API_KEY in env.js)');
+  }
+
+  const url = `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(VOICE_ID)}/stream`;
+  const response = await fetch(url, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json'
+      'Accept': 'audio/mpeg',
+      'Content-Type': 'application/json',
+      'xi-api-key': ELEVENLABS_API_KEY
     },
     body: JSON.stringify({
       text,
-      voiceId: VOICE_ID || undefined,
-      modelId: 'eleven_multilingual_v2'
+      model_id: 'eleven_multilingual_v2',
+      voice_settings: {
+        stability: 0.75,
+        similarity_boost: 0.85,
+        style: 0.0,
+        use_speaker_boost: true
+      }
     })
   });
 
-  const json = await response.json().catch(() => null);
-  if (!response.ok || !json || !json.audioBase64) {
-    console.error('❌ ElevenLabs proxy error:', response.status, json);
+  if (!response.ok) {
+    const detail = await response.text().catch(() => '');
+    console.error('❌ ElevenLabs HTTP error:', response.status, detail);
     throw new Error(`ElevenLabs API error: ${response.status}`);
   }
 
-  const audioBytes = Uint8Array.from(atob(json.audioBase64), c => c.charCodeAt(0));
-  const audioBlob = new Blob([audioBytes], { type: json.contentType || 'audio/mpeg' });
+  const buffer = await response.arrayBuffer();
+  const audioBlob = new Blob([buffer], { type: 'audio/mpeg' });
   return URL.createObjectURL(audioBlob);
 }
 

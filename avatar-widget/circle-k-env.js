@@ -1,5 +1,4 @@
-// OBI Website API Configuration (placeholder only)
-// Use the backend proxy (proxy-server.js or serverless) to keep real keys server-side.
+// Circle K Website API Configuration (local-only; do NOT commit real keys)
 
 window.ENV = {
   GEMINI_API_KEY: 'AIzaSyBXIw7PzIUxvR7xa3iYLKN8Lpu9xW0oNts',
